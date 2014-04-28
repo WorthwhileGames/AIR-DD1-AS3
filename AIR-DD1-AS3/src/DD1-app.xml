@@ -15,7 +15,7 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>DD1</id>
+	<id>org.wwlib.DD1</id>
 
 	<!-- Used as the filename for the application. Required. -->
 	<filename>DD1</filename>
@@ -111,6 +111,7 @@
 
 		<!-- Display Resolution for the app (either "standard" or "high"). Optional, OSX-only. Default "standard" -->
 		<!-- <requestedDisplayResolution></requestedDisplayResolution> -->
+	<aspectRatio>landscape</aspectRatio>
 	<autoOrients>true</autoOrients>
         <fullScreen>false</fullScreen>
         <visible>true</visible>
