@@ -6,7 +6,10 @@ package
 	import flash.display.Stage;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
+	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.sensors.Accelerometer;
+	import flash.utils.getTimer;
 	
 	import org.wwlib.flash.WwAppBG;
 	import org.wwlib.flash.WwAudioManager;
@@ -99,11 +102,54 @@ package
 			__debug.msg("screenDPI: " + __deviceInfo.screenDPI,"3");			
 			__debug.show = true;
 			
+			__appFlashStage.scaleX =  __deviceInfo.assetScaleFactor;
+			__appFlashStage.scaleY =  __deviceInfo.assetScaleFactor;
+			__appFlashStage.x =  __deviceInfo.stageX;
+			__appFlashStage.y =  __deviceInfo.stageY;
+			
+			__appFlashAlertsStage.scaleX =  __deviceInfo.assetScaleFactor;
+			__appFlashAlertsStage.scaleY =  __deviceInfo.assetScaleFactor;
+			__appFlashAlertsStage.x =  __deviceInfo.stageX;
+			__appFlashAlertsStage.y =  __deviceInfo.stageY;
+			
+			__appDebugStage.scaleX =  __deviceInfo.assetScaleFactor;
+			__appDebugStage.scaleY =  __deviceInfo.assetScaleFactor;
+			__appDebugStage.x =  __deviceInfo.stageX;
+			__appDebugStage.y =  __deviceInfo.stageY;
+			
+			__debug.msg("assetScaleFactor: " + __deviceInfo.assetScaleFactor,"3");
+			
+			addEventListener(Event.ENTER_FRAME, onEnterFrame);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			
 			// Audio Manager
 			WwAudioManager.init();
 			
 			// App State Manager
 			__appStateManager = DdAppStateManager.init(this, __appFlashStage);
+		}
+		
+		private function onKeyDown(event:KeyboardEvent):void
+		{
+			//__debug.msg("onKeyDown: " + event.keyCode);
+			if (__appStateManager)
+			{
+				__appStateManager.onKeyDown(event);
+			}
+		}
+		
+		private function onEnterFrame(event:Event):void
+		{
+			if (__appStateManager)
+			{
+				var total_milliseconds:int = getTimer();
+				__frameTime = total_milliseconds - __prevTime;
+				__prevTime = total_milliseconds;
+				__frameRate = 1000.0 / __frameTime;
+				__totalSeconds = total_milliseconds / 1000.0;
+				__appStateManager.enterFrameUpdateHandler(__frameTime, __totalSeconds);
+				WwDebug.fps = __frameRate;
+			}
 		}
 	}
 }

@@ -3,6 +3,8 @@ package
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
+	import flash.events.KeyboardEvent;
+	import flash.text.TextField;
 	
 	import org.wwlib.dd1.UI_Main;
 	import org.wwlib.flash.WwAppState;
@@ -18,10 +20,41 @@ package
 	public class DdAppStateMain extends WwAppState
 	{
 		private var __UI_Main:UI_Main;
+		
+		private var __txtTeletype:TextField;
+		//private var __txtPrompt:TextField;
+		//private var __txtInput:TextField;
+		//private var __btnEnter:MovieClip;
+				
+		private var __input:DdInput;
+		private var __output:DdOutput;
 
 		public function DdAppStateMain()
 		{
 			super();
+		}
+		
+		override public function onKeyDown(event:KeyboardEvent):void
+		{
+			//__debug.msg("  onKeyDown: " + __input.reading);
+			if (__input.reading)
+			{
+				__input.onKeyDown(event.keyCode);
+			}
+		}
+		
+		public override function enterFrameUpdateHandler(frame_time:int, total_seconds:Number):void
+		{
+			if (__input.bufferIsNotEmpty())
+			{
+				__output.print(__input.getReadBufferAsString(), false);
+			}
+			else if (__input.complete())
+			{
+				//__debug.msg("  __input.complete(): " + __input.complete());
+				__input.onComplete();
+			}
+			__output.output();
 		}
 		
 		public override function init(_app:flash.display.Sprite, _stage:MovieClip):void
@@ -32,7 +65,21 @@ package
 			setupTimelineCallbacks(__UI_Main);
 			addChild(__UI_Main);
 			__UI_Main.gotoAndPlay("a");
-		
+			
+			__txtTeletype = __UI_Main.txt_teletype;
+			//__txtPrompt = __UI_Main.txt_prompt;
+			//__txtInput = __UI_Main.txt_input;
+			//__btnEnter = __UI_Main.btn_enter;
+			
+			__input = new DdInput();
+			__output = new DdOutput(__txtTeletype);
+						
+			/*
+			FILE #N,"SPEC"  Open file "SPEC" as file N
+			RESTORE #N      Rewind file N
+			READ #N, VAR    Read value from file N into variable VAR
+			WRITE #N, VAR   Write value of VAR to file #N
+			*/
 		
 			/*
 			00010 LET J4=1
@@ -68,27 +115,141 @@ package
 			DD1_Run();
 		}
 		
-		public function DD1_Run():void
+		private function input(input_handler:Function):void
+		{
+			__input.read(input_handler);
+		}
+		
+		private function print(msg:String, carriage_return:Boolean=true):void
+		{
+			__output.print(msg, carriage_return);
+		}
+		
+		private function DD1_Run():void
 		{
 			
-			/*
-			00320 PRINT "     DUNGEONS AND DRAGONS #1"
-			00330 PRINT
-			00340 PRINT "DO YOU NEED INSTUCTIONS ";
-			00350 INPUT Q$
-			00360 IF Q$="YES" THEN 01730
-			00370 IF Q$="Y" THEN 00720
-			00380 PRINT "OLD OR NEW GAME";
-			00390 INPUT Q$
-			00400 IF Q$="OLD" THEN 01770
-			00410 PRINT "DUNGEON #";
-			00420 INPUT D
-			00421 PRINT "CONTINUES RESET 1=YES,2=NO ";
-			00422 INPUT J6
 			
-			00430 REM ROLLING CHARICTERISTICS
-			00440 PRINT "PLAYERS NME ";
-			00450 INPUT N$
+			//00320 PRINT "     DUNGEONS AND DRAGONS #1"
+			//00330 PRINT
+			print("     DUNGEONS AND DRAGONS #1");
+			print("");
+			
+			//00340 PRINT "DO YOU NEED INSTUCTIONS ";
+			//00350 INPUT Q$
+			print("DO YOU NEED INSTUCTIONS", false);
+			input(onQueryInstructions);
+			
+		}
+		
+		private function onQueryInstructions(_input:String):void
+		{
+			__debug.msg(" onPromptInstructions: " + _input);
+			
+			//00360 IF Q$="YES" THEN 01730
+			if (_input == "YES")
+			{
+				//01730 REM INSTRUCTIONS
+				//01740 PRINT "WHO SAID YOU COULD PLAY"
+				//01750 STOP
+				//print("WHO SAID YOU COULD PLAY");
+			}
+			//00370 IF Q$="Y" THEN 00720
+			else if (_input == "Y")
+			{
+				print("WHO SAID YOU COULD PLAY");
+			}
+			else
+			{
+				//00380 PRINT "OLD OR NEW GAME";
+				//00390 INPUT Q$
+				print("OLD OR NEW GAME", false);
+				input(onQueryOldOrNewGame);
+				
+			}
+		}
+		
+		private function onQueryOldOrNewGame(_input:String):void
+		{
+			__debug.msg(" onQueryOldOrNewGame: " + _input);
+			//00400 IF Q$="OLD" THEN 01770
+			if (_input == "OLD")
+			{
+				print("DEBUG: READING OLD GAME");
+				/*
+				01770 REM READ OUT OLD GAME
+				01775 RESTORE #7
+				01780 READ #7,D
+				01790 READ #7,X
+				01800 READ #7,J
+				01810 READ #7,G
+				01820 READ #7,H
+				01830 READ #7,K
+				01840 FOR M=0 TO 25
+				01850 FOR N=0 TO 25
+				01860 READ #7,D(M,N)
+				01870 NEXT N
+				01880 NEXT M
+				01890 FOR M=1 TO X
+				01900 READ #7,W(M)
+				01910 NEXT M
+				01920 FOR M=1 TO 10
+				01930 READ #7,B$(M)
+				01940 FOR N=1 TO 6
+				01950 READ #7,B(M,N)
+				01960 NEXT N
+				01970 NEXT M
+				01980 FOR M=0 TO 7
+				01990 READ #7,C$(M)
+				02000 READ #7,C(M)
+				02010 NEXT M
+				02020 READ #7,N$
+				02030 READ #7,F1
+				02040 READ #7,F2
+				02050 FOR M=1 TO 15
+				02060 READ #7,I$(M)
+				02070 NEXT M
+				02080 READ #7,X3
+				02090 FOR M=1 TO X3
+				02100 READ #7,X4(M)
+				02110 NEXT M
+				02120 READ #7,X1
+				02130 FOR M=1 TO X1
+				02140 READ #7,X2(M)
+				02150 NEXT M
+				02151 READ #7,F2
+				02152 READ #7,F1
+				02160 GO TO 01510
+				*/
+			}
+			else
+			{
+				//00410 PRINT "DUNGEON #";
+				//00420 INPUT D
+				print("DUNGEON #", false);
+				input(onQueryDungeonNumber);
+			}
+		}
+		
+		private function onQueryDungeonNumber(_input:String):void
+		{
+			//00421 PRINT "CONTINUES RESET 1=YES,2=NO ";
+			//00422 INPUT J6
+			print("CONTINUES RESET 1=YES,2=NO", false);
+			input(onQueryContinues);
+		}
+		
+		private function onQueryContinues(_input:String):void
+		{
+			//00430 REM ROLLING CHARICTERISTICS
+			//00440 PRINT "PLAYERS NME ";
+			//00450 INPUT N$
+			print("PLAYERS NME", false);
+			input(onQueryPlayersName);
+		}
+		
+		private function onQueryPlayersName(_input:String):void
+		{
+			/*
 			00460 IF N$<>"SHAVS" THEN 01730
 			00465 FOR M=1 TO 7
 			00466 READ C$(M)
@@ -105,10 +266,22 @@ package
 			00560 PRINT C$(M);"=";C(M)
 			00570 NEXT M
 			00580 PRINT
-			00590 PRINT "CLASSIFICATION"
-			00600 PRINT "WHICH DO YOU WANT TO BE"
-			00610 PRINT "FIGHTER ,CLERIC ,OR WIZARD";
-			00620 INPUT C$(0)
+			*/
+			
+			//00590 PRINT "CLASSIFICATION"
+			//00600 PRINT "WHICH DO YOU WANT TO BE"
+			//00610 PRINT "FIGHTER ,CLERIC ,OR WIZARD";
+			//00620 INPUT C$(0)
+			
+			print("CLASSIFICATION");
+			print("WHICH DO YOU WANT TO BE");
+			print("FIGHTER ,CLERIC ,OR WIZARD", false);
+			input(onQueryClassification);
+		}
+		
+		private function onQueryClassification(_input:String):void
+		{
+			/*
 			00625 IF C$(0)<>"NONE" THEN 0630
 			00626 FOR M7=0 TO 7
 			00627 LET C(M7)=0
@@ -118,32 +291,43 @@ package
 			00640 IF C$(0)="CLERIC" THEN 00810
 			00650 IF C$(0)="WIZARD" THEN 00790
 			00660 GO TO 00620
-			00670 PRINT "BUYING WEAPONS"
-			00680 PRINT "FAST OR NORM"
-			00690 INPUT Q3$
-			00700 PRINT "NUMBER","ITEM","PRICE"
-			00705 PRINT"-1-STOP"
-			00710 FOR M=1 TO 15
-			00720 READ I$(M),P(M)
-			00725 IF Q3$="FAST" THEN 00740
-			00730 PRINT M,I$(M),P(M)
-			00740 NEXT M
-			*/		
-			DD1_01150(); //00750 GOSUB 01150
+			*/
 			
-			/*		
-			00760 GO TO 00830
-			00770 LET C(0)=INT(RND(0)*8+1)
-			00780 GO TO 00670
-			00790 LET C(0)=INT(RND(0)*4+1)
-			00800 GO TO 00670
-			00810 LET C(0)=INT(RND(0)*6+1)
-			00820 GO TO 00670
+			//00670 PRINT "BUYING WEAPONS"
+			//00680 PRINT "FAST OR NORM"
+			//00690 INPUT Q3$
+			print("BUYING WEAPONS");
+			print("FAST OR NORM", false);
+			input(onQueryBuyingWeapons);
+		}
+		
+		private function onQueryBuyingWeapons(_input:String):void
+		{
+			//00700 PRINT "NUMBER","ITEM","PRICE"
+			//00705 PRINT"-1-STOP"
+			//00710 FOR M=1 TO 15
+			//00720 READ I$(M),P(M)
+			//00725 IF Q3$="FAST" THEN 00740
+			//00730 PRINT M,I$(M),P(M)
+			//00740 NEXT M
+					
+			//DD1_01150(); //00750 GOSUB 01150
 			
-			00830 REM
-			00850 LET X=X+1
-			00860 INPUT Y
+			//00760 GO TO 00830
 			
+			print("NUMBER ITEM PRICE");
+			print("-1-STOP");
+			
+			//00830 REM
+			//00850 LET X=X+1
+			//00860 INPUT Y
+			
+			input(onQueryStorePurhase);
+		}
+		
+		private function onQueryStorePurhase(_input:String):void
+		{
+			/*
 			00870 REM
 			00880 IF Y<0 THEN 01000
 			00885 IF Y>15 THEN 01000
@@ -160,10 +344,21 @@ package
 			00980 PRINT "TRY AGAIN ";
 			00990 GO TO 00860
 			01000 PRINT "GP= ";C(7)
-			
-			01010 REM
-			01020 PRINT "EQ LIST ";
-			01030 INPUT Q$
+			*/
+		}
+		
+		private function onExitStore():void
+		{
+			//01010 REM
+			//01020 PRINT "EQ LIST ";
+			//01030 INPUT Q$
+			print("EQ LIST ", false);
+			input(onQueryEQList);
+		}
+		
+		private function onQueryEQList(_input:String):void
+		{
+			/*
 			01040 IF Q$="NO" THEN 01090
 			01050 FOR M=1 TO X
 			01060 IF W(M)=0 THEN 01080
@@ -177,6 +372,29 @@ package
 			01120 PRINT
 			01130 PRINT
 			01140 GO TO 01400
+			*/
+		}
+		
+		private function todo():void
+		{
+			
+			/*
+			
+			
+			
+			00770 LET C(0)=INT(RND(0)*8+1)
+			00780 GO TO 00670
+			00790 LET C(0)=INT(RND(0)*4+1)
+			00800 GO TO 00670
+			00810 LET C(0)=INT(RND(0)*6+1)
+			00820 GO TO 00670
+			
+			
+			
+			
+			
+			
+			
 			*/
 			
 			// SUBROUTINE #1 01150
@@ -243,54 +461,10 @@ package
 			01710 PRINT "COME ON ";
 			01720 GO TO 01590
 			
-			01730 REM INSTRUCTIONS
-			01740 PRINT "WHO SAID YOU COULD PLAY"
-			01750 STOP
+			
 			01760 GO TO 00380
 			
-			01770 REM READ OUT OLD GAME
-			01775 RESTORE #7
-			01780 READ #7,D
-			01790 READ #7,X
-			01800 READ #7,J
-			01810 READ #7,G
-			01820 READ #7,H
-			01830 READ #7,K
-			01840 FOR M=0 TO 25
-			01850 FOR N=0 TO 25
-			01860 READ #7,D(M,N)
-			01870 NEXT N
-			01880 NEXT M
-			01890 FOR M=1 TO X
-			01900 READ #7,W(M)
-			01910 NEXT M
-			01920 FOR M=1 TO 10
-			01930 READ #7,B$(M)
-			01940 FOR N=1 TO 6
-			01950 READ #7,B(M,N)
-			01960 NEXT N
-			01970 NEXT M
-			01980 FOR M=0 TO 7
-			01990 READ #7,C$(M)
-			02000 READ #7,C(M)
-			02010 NEXT M
-			02020 READ #7,N$
-			02030 READ #7,F1
-			02040 READ #7,F2
-			02050 FOR M=1 TO 15
-			02060 READ #7,I$(M)
-			02070 NEXT M
-			02080 READ #7,X3
-			02090 FOR M=1 TO X3
-			02100 READ #7,X4(M)
-			02110 NEXT M
-			02120 READ #7,X1
-			02130 FOR M=1 TO X1
-			02140 READ #7,X2(M)
-			02150 NEXT M
-			02151 READ #7,F2
-			02152 READ #7,F1
-			02160 GO TO 01510
+			
 			
 			02170 REM MOVE
 			02175 PRINT "YOU ARE AT ";G;" , ";H
@@ -1361,10 +1535,6 @@ package
 			08600 LET R2=0
 			08610 RETURN
 			*/
-		}
-		
-		public override function enterFrameUpdateHandler(frame_time:int, total_seconds:Number):void
-		{
 		}
 		
 		public override function accelerometerUpdateHandler(event:AccelerometerEvent):void

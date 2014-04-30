@@ -3,6 +3,7 @@ package
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
+	import flash.events.KeyboardEvent;
 	
 	import org.wwlib.flash.WwAppBG;
 	import org.wwlib.flash.WwAppState;
@@ -80,6 +81,14 @@ package
 		private function setup():void
 		{
 			gotoState(DdAppStateManager.STATE_LOGOS);
+		}
+		
+		public function onKeyDown(event:KeyboardEvent):void
+		{
+			if (__currentState)
+			{
+				__currentState.onKeyDown(event);
+			}
 		}
 
 		public function enterFrameUpdateHandler(frame_time:int, total_seconds:Number):void

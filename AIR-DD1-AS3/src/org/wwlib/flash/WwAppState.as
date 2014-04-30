@@ -3,6 +3,7 @@ package org.wwlib.flash
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
+	import flash.events.KeyboardEvent;
 	
 	import avmplus.getQualifiedClassName;
 	
@@ -41,6 +42,10 @@ package org.wwlib.flash
 		{
 			__app = _app;
 			__appStage = _stage;
+		}
+		
+		public function onKeyDown(event:KeyboardEvent):void
+		{
 		}
 		
 		public function enterFrameUpdateHandler(frame_time:int, total_seconds:Number):void
