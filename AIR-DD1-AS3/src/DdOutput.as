@@ -11,6 +11,8 @@ package
 	 */
 	public class DdOutput
 	{
+		public static var LINE_HEIGHT:int = 30;
+		
 		private var __outputTextfield:TextField;
 		private var __pendingOutput:Vector.<String>;
 		private var __printing:Boolean;
@@ -47,6 +49,8 @@ package
 					if (_char == "\n")
 					{
 						WwAudioManager.playSound("click");
+						__outputTextfield.y -= LINE_HEIGHT;
+						__outputTextfield.height += LINE_HEIGHT;
 					}
 					else
 					{

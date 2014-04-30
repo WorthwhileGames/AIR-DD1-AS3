@@ -4,6 +4,7 @@ package
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
 	import flash.events.KeyboardEvent;
+	import flash.text.ReturnKeyLabel;
 	import flash.text.TextField;
 	
 	import org.wwlib.dd1.UI_Main;
@@ -28,6 +29,39 @@ package
 				
 		private var __input:DdInput;
 		private var __output:DdOutput;
+		private var __J4:int;
+		private var __X:int;
+		private var __J:int;
+		private var __K:int;
+		private var __X1:int;
+		private var __X3:int;
+		private var __J9:int;
+		private var __C:Array;
+		private var __C$:Array;
+		private var __W:Array;
+		private var __D:Array;
+		private var __P:Array;
+		private var __I$:Array;
+		private var __B:Array;
+		private var __B$:Array;
+		private var __E:Array;
+		private var __F:Array;
+		private var __X5:Array;
+		private var __X6:Array;
+		private var __X2:Array;
+		private var __X4:Array;
+		private var __G:int;
+		private var __H:int;
+		private var __J6:int;
+		private var __Q$:String;
+		private var __N$:String;
+		
+		private var __DUNGEON:int;
+		private var __class:String;
+		private var __monsters:DdMonsters;
+		private var __inventoryCount:int;
+		private var __items:DdItems;
+		private var __player:DdPlayer;
 
 		public function DdAppStateMain()
 		{
@@ -67,6 +101,8 @@ package
 			__UI_Main.gotoAndPlay("a");
 			
 			__txtTeletype = __UI_Main.txt_teletype;
+			__txtTeletype.y = 530;
+			__txtTeletype.height = DdOutput.LINE_HEIGHT * 2;
 			//__txtPrompt = __UI_Main.txt_prompt;
 			//__txtInput = __UI_Main.txt_input;
 			//__btnEnter = __UI_Main.btn_enter;
@@ -112,6 +148,40 @@ package
 			00300 DATA "CHAIN MAIL",30,"TLTE MAIL",50,"ROPE",1,"SPIKES",1
 			00310 DATA "FLASK OF OIL",2,"SILVER CROSS",25,"SPARE FOOD",5
 			*/
+			
+			__J4 = 1;
+			__X = 0;
+			__J = 0;
+			__K = 0;
+			__X1 = 0;
+			__X3 = 0;
+			__J9 = 0; //RND(CLK(J9))
+			__C = [0,0,0,0,0,0,0];
+			__C$ = ["STR","DEX","CON","CHAR","WIS","INT","GOLD"];
+			__W = new Array(100);
+			__D = new Array(100); //DdGameBoard();
+			
+			__P = [10,15,3,5,2,25,2,15,30,50,1,1,2,25,5];
+			__I$ = ["SWORD","2-H-SWORD","DAGGER","MACE","SPEAR","BOW","ARROWS","LEATHER MAIL","CHAIN MAIL","TLTE MAIL","ROPE","SPIKES","FLASK OF OIL","SILVER CROSS","SPARE FOOD"];
+			__B = new Array(100); //(100,6)
+			__B$ = new Array(100);
+			__E = new Array(100);
+			__F = new Array(100);
+			__X5 = new Array(100);
+			__X6 = new Array(100);
+			__X2 = new Array(100);
+			__X4 = new Array(100);
+			__G = Math.random()*24 +2; //INT(RND(0)*24+2;
+			__H = Math.random()*24 +2; //INT(RND(0)*24+2);
+			
+			__J6 = 0;
+			__class = "NONE";
+			__monsters = new DdMonsters();
+			__items = new DdItems();
+			__player = new DdPlayer();
+			
+			__inventoryCount = 0;
+			
 			DD1_Run();
 		}
 		
@@ -141,22 +211,20 @@ package
 			
 		}
 		
-		private function onQueryInstructions(_input:String):void
+		private function onQueryInstructions(args:Array):void
 		{
-			__debug.msg(" onPromptInstructions: " + _input);
-			
+			__debug.msg(" onQueryInstructions: " + args);
+			__Q$ = args[0];
 			//00360 IF Q$="YES" THEN 01730
-			if (_input == "YES")
+			if (__Q$ == "YES")
 			{
-				//01730 REM INSTRUCTIONS
-				//01740 PRINT "WHO SAID YOU COULD PLAY"
-				//01750 STOP
-				//print("WHO SAID YOU COULD PLAY");
+				whoSaidYouCouldPlay();
 			}
 			//00370 IF Q$="Y" THEN 00720
-			else if (_input == "Y")
+			//BUG 720 is not the right place to go
+			else if (__Q$ == "Y")
 			{
-				print("WHO SAID YOU COULD PLAY");
+				whoSaidYouCouldPlay();
 			}
 			else
 			{
@@ -168,11 +236,20 @@ package
 			}
 		}
 		
-		private function onQueryOldOrNewGame(_input:String):void
+		private function whoSaidYouCouldPlay():void
 		{
-			__debug.msg(" onQueryOldOrNewGame: " + _input);
+			//01730 REM INSTRUCTIONS
+			//01740 PRINT "WHO SAID YOU COULD PLAY"
+			//01750 STOP
+			print("WHO SAID YOU COULD PLAY");
+		}
+		
+		private function onQueryOldOrNewGame(args:Array):void
+		{
+			__debug.msg(" onQueryOldOrNewGame: " + args);
+			__Q$ = args[0];
 			//00400 IF Q$="OLD" THEN 01770
-			if (_input == "OLD")
+			if (__Q$ == "OLD")
 			{
 				print("DEBUG: READING OLD GAME");
 				/*
@@ -230,16 +307,19 @@ package
 			}
 		}
 		
-		private function onQueryDungeonNumber(_input:String):void
+		private function onQueryDungeonNumber(args:Array):void
 		{
 			//00421 PRINT "CONTINUES RESET 1=YES,2=NO ";
 			//00422 INPUT J6
+			__DUNGEON = args[0];
 			print("CONTINUES RESET 1=YES,2=NO", false);
 			input(onQueryContinues);
 		}
 		
-		private function onQueryContinues(_input:String):void
+		private function onQueryContinues(args:Array):void
 		{
+			__J6 = int(args[0]);
+			__debug.msg(" onQueryContinues: " + __J6);
 			//00430 REM ROLLING CHARICTERISTICS
 			//00440 PRINT "PLAYERS NME ";
 			//00450 INPUT N$
@@ -247,27 +327,47 @@ package
 			input(onQueryPlayersName);
 		}
 		
-		private function onQueryPlayersName(_input:String):void
+		private function onQueryPlayersName(args:Array):void
 		{
-			/*
-			00460 IF N$<>"SHAVS" THEN 01730
-			00465 FOR M=1 TO 7
-			00466 READ C$(M)
-			00467 NEXT M
-			00470 FOR M=1 TO 7
-			00490 FOR N=1 TO 3
-			00500 LET R=INT(RND(0)*6+1)
-			00510 LET C(M)=C(M)+R
-			00520 NEXT N
-			00530 IF M<>7 THEN 00550
-			00540 LET C(M)=C(M)*15
+			var _input:String = args[0];
+			__debug.msg(" onQueryPlayersName: " + args + ", " + _input);
 			
-			00550 REM
-			00560 PRINT C$(M);"=";C(M)
-			00570 NEXT M
-			00580 PRINT
-			*/
+			//00460 IF N$<>"SHAVS" THEN 01730
+			if (_input == "SHAVS")
+			{
+				__player.name = _input;
+				//00465 FOR M=1 TO 7
+				//00466 READ C$(M)
+				//00467 NEXT M
+				
+				
+				//00470 FOR M=1 TO 7
+				//00490 FOR N=1 TO 3
+				//00500 LET R=INT(RND(0)*6+1)
+				//00510 LET C(M)=C(M)+R
+				//00520 NEXT N
+				//00530 IF M<>7 THEN 00550
+				//00540 LET C(M)=C(M)*15
+				//00550 REM
+				//00560 PRINT C$(M);"=";C(M)
+				//00570 NEXT M
+				
+				//ROLL STATS
+				print(__player.statsList());
+				//00580 PRINT
+				print("");
+			}
+			else
+			{
+				whoSaidYouCouldPlay();
+				return;
+			}
 			
+			chooseClassification();
+		}
+		
+		private function chooseClassification():void
+		{
 			//00590 PRINT "CLASSIFICATION"
 			//00600 PRINT "WHICH DO YOU WANT TO BE"
 			//00610 PRINT "FIGHTER ,CLERIC ,OR WIZARD";
@@ -279,54 +379,109 @@ package
 			input(onQueryClassification);
 		}
 		
-		private function onQueryClassification(_input:String):void
+		private function onQueryClassification(args:Array):void
 		{
+			__class = args[0];
 			/*
 			00625 IF C$(0)<>"NONE" THEN 0630
 			00626 FOR M7=0 TO 7
 			00627 LET C(M7)=0
 			00628 NEXT M7
 			00629 GO TO 00470
-			00630 IF C$(0)="FIGHTER" THEN 00770
-			00640 IF C$(0)="CLERIC" THEN 00810
-			00650 IF C$(0)="WIZARD" THEN 00790
-			00660 GO TO 00620
 			*/
 			
-			//00670 PRINT "BUYING WEAPONS"
-			//00680 PRINT "FAST OR NORM"
-			//00690 INPUT Q3$
-			print("BUYING WEAPONS");
-			print("FAST OR NORM", false);
-			input(onQueryBuyingWeapons);
+			if (__class == "NONE")
+			{
+				__player.rollStats();
+				print(__player.statsList());
+				chooseClassification();
+			}
+			else
+			{
+				//00630 IF C$(0)="FIGHTER" THEN 00770
+				//00640 IF C$(0)="CLERIC" THEN 00810
+				//00650 IF C$(0)="WIZARD" THEN 00790
+				//00660 GO TO 00620
+				
+				//ASET HIT POINTS
+				switch(__class)
+				{
+					case "FIGHTER":
+					{
+						//00770 LET C(0)=INT(RND(0)*8+1)
+						//00780 GO TO 00670
+						__player.HP = Math.random()*8+1;
+						break;
+					}
+					case "CLERIC":
+					{
+						//00790 LET C(0)=INT(RND(0)*4+1)
+						//00800 GO TO 00670
+						__player.HP  = Math.random()*4+1;
+						break;
+					}
+					case "WIZARD":
+					{
+						//00810 LET C(0)=INT(RND(0)*6+1)
+						//00820 GO TO 00670
+						__player.HP  = Math.random()*6+1;
+						break;
+					}
+						
+					default:
+					{
+						break;
+					}
+				}
+
+				//00670 PRINT "BUYING WEAPONS"
+				//00680 PRINT "FAST OR NORM"
+				//00690 INPUT Q3$
+				print("BUYING WEAPONS");
+				print("FAST OR NORM", false);
+				input(onQueryBuyingWeapons);
+			}
 		}
 		
-		private function onQueryBuyingWeapons(_input:String):void
+		private function onQueryBuyingWeapons(args:Array):void
 		{
+			var _input:String = args[0];
 			//00700 PRINT "NUMBER","ITEM","PRICE"
 			//00705 PRINT"-1-STOP"
+			
+			print("NUMBER\tITEM\tPRICE");
+			print("-1-STOP");
+			print("");
+			
 			//00710 FOR M=1 TO 15
 			//00720 READ I$(M),P(M)
 			//00725 IF Q3$="FAST" THEN 00740
 			//00730 PRINT M,I$(M),P(M)
 			//00740 NEXT M
+			
+			if (_input == "NORM")
+			{
+				print(__items.itemList());
+			}
+			
 					
-			//DD1_01150(); //00750 GOSUB 01150
+			//DD1_01150(); //00750 GOSUB 01150 //SET UP MONSTER TYPES
 			
 			//00760 GO TO 00830
 			
-			print("NUMBER ITEM PRICE");
-			print("-1-STOP");
+			
 			
 			//00830 REM
 			//00850 LET X=X+1
 			//00860 INPUT Y
-			
+			print ("ITEM TO BUY ", false);
 			input(onQueryStorePurhase);
 		}
 		
-		private function onQueryStorePurhase(_input:String):void
+		private function onQueryStorePurhase(args:Array):void
 		{
+			var _input:int = args[0];
+			__inventoryCount++;
 			/*
 			00870 REM
 			00880 IF Y<0 THEN 01000
@@ -345,6 +500,81 @@ package
 			00990 GO TO 00860
 			01000 PRINT "GP= ";C(7)
 			*/
+			
+			if ((_input >= 1) && (_input <= 15))
+			{
+				var item:DdItem = __items.item(_input-1);
+				print(item.name + "\t" + item.price, false); //DEBUG
+				
+				if ((__player.GOLD - item.price) < 0)
+				{
+					print("COSTS TOO MUCH");
+					print("TRY AGAIN ", false);
+					input(onQueryStorePurhase);
+				}
+				else if (__class == "CLERIC")
+				{
+					//01290 IF Y=4 THEN 00920
+					//01300 IF Y=8 THEN 00920
+					//01310 IF Y=9 THEN 00920
+					//01320 IF Y>10 THEN 00920
+					//01330 PRIT "YOUR A CLERIC YOU CANT USE THAT "
+					//01340 GO TO 00860
+					
+					if ((_input == 4) || (_input == 8) || (_input == 9) || (_input > 10))
+					{
+						//00920 REM
+						//00930 LET C(7)=C(7)-P(Y)
+						//00940 PRINT "GP= ";C(7)
+						//00950 LET W(X)=Y
+						//00960 GO TO 00830
+						
+						__player.GOLD = __player.GOLD - item.price;
+						print("GP= " + __player.GOLD, false);
+						//__W[__inventoryCount++] = _input -1;
+						__player.inventory.addItem(item);
+						input(onQueryStorePurhase);
+					}
+					else
+					{
+						print("YOUR A CLERIC YOU CANT USE THAT ", false);
+						input(onQueryStorePurhase);
+					}
+				}
+				else if (__class == "WIZARD")
+				{
+					//01350 IF Y=3 THEN 00920
+					//01360 IF Y=8 THEN 00920
+					//01370 IF Y>10 THEN 00920
+					//01380 PRINT "YOUR A WIZARD YOU CANT USE THAT "
+					//01390 GO TO 00860
+					
+					if ((_input == 3) || (_input == 8) || (_input > 10))
+					{
+						//00920 REM
+						//00930 LET C(7)=C(7)-P(Y)
+						//00940 PRINT "GP= ";C(7)
+						//00950 LET W(X)=Y
+						//00960 GO TO 00830
+						
+						__player.GOLD = __player.GOLD - item.price;
+						print("GP= " + __player.GOLD, false);
+						//__W[__inventoryCount++] = _input -1;
+						__player.inventory.addItem(item);
+						input(onQueryStorePurhase);
+					}
+					else
+					{
+						print("YOUR A WIZARD YOU CANT USE THAT ", false);
+						input(onQueryStorePurhase);
+					}
+				}
+			}
+			else
+			{
+				print("GP= " + __player.GOLD);
+				onExitStore();
+			}
 		}
 		
 		private function onExitStore():void
@@ -356,8 +586,9 @@ package
 			input(onQueryEQList);
 		}
 		
-		private function onQueryEQList(_input:String):void
+		private function onQueryEQList(args:Array):void
 		{
+			var _input:String = args[0];
 			/*
 			01040 IF Q$="NO" THEN 01090
 			01050 FOR M=1 TO X
@@ -373,44 +604,33 @@ package
 			01130 PRINT
 			01140 GO TO 01400
 			*/
+			
+			if (_input == "NO")
+			{
+				
+			}
+			else
+			{
+				print(__player.inventory.inventoryList());
+			}
+			
+			print("YOUR CHARACTERISTICS ARE;");
+			if (__player.HP == 1) __player.HP = 2;
+			//print("HIT POINTS " + __player.HP);
+			print(__player.statsList()); //DEBUG
+			print("");
+			
+			
 		}
 		
 		private function todo():void
 		{
 			
-			/*
-			
-			
-			
-			00770 LET C(0)=INT(RND(0)*8+1)
-			00780 GO TO 00670
-			00790 LET C(0)=INT(RND(0)*4+1)
-			00800 GO TO 00670
-			00810 LET C(0)=INT(RND(0)*6+1)
-			00820 GO TO 00670
-			
-			
-			
-			
-			
-			
-			
-			*/
-			
 			// SUBROUTINE #1 01150
 			
 			/*
-			01290 IF Y=4 THEN 00920
-			01300 IF Y=8 THEN 00920
-			01310 IF Y=9 THEN 00920
-			01320 IF Y>10 THEN 00920
-			01330 PRIT "YOUR A CLERIC YOU CANT USE THAT "
-			01340 GO TO 00860
-			01350 IF Y=3 THEN 00920
-			01360 IF Y=8 THEN 00920
-			01370 IF Y>10 THEN 00920
-			01380 PRINT "YOUR A WIZARD YOU CANT USE THAT "
-			01390 GO TO 00860
+			
+			
 			
 			01400 REM READ DUNGEON AND START GAME
 			01410 RESTORE #D
@@ -1486,10 +1706,9 @@ package
 			*/
 		}
 		
+		/*
 		public function DD1_01150():void
 		{
-			
-			/*
 			01150 DATA "MAN",1,13,26,1,1,500
 			01160 DATA "GOBLIN",2,13,24,1,1,600
 			01170 DATA "TROLL",3,15,35,1,1,1000
@@ -1507,9 +1726,8 @@ package
 			01269 B(M,1)=1
 			01270 NEXT M
 			01280 RETURN
-			*/
-			
 		}
+		*/
 		
 		public function DD1_08410():void
 		{

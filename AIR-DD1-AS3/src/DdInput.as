@@ -50,6 +50,7 @@ package
 		{
 			__readBuffer.push(_char);
 			__inputString += _char;
+			//WwDebug.instance.msg("  appendCharacter: " + __inputString);
 		}
 		
 		public function onKeyDown(key_code:int):void
@@ -107,8 +108,9 @@ package
 			//WwDebug.instance.msg("  onComplete: " + __onCompleteHandler);
 			if (__onCompleteHandler)
 			{
+				var args:Array = __inputString.split(" ");
 				reset();
-				__onCompleteHandler(__inputString);
+				__onCompleteHandler(args);
 			}
 		}
 
