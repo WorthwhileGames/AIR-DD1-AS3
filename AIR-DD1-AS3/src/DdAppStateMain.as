@@ -30,9 +30,9 @@ package
 		private var __input:DdInput;
 		private var __output:DdOutput;
 		private var __J4:int;
-		private var __X:int;
-		private var __J:int;
-		private var __K:int;
+		//private var __X:int;
+		//private var __J:int;
+		//private var __K:int;
 		private var __X1:int;
 		private var __X3:int;
 		private var __J9:int;
@@ -50,18 +50,28 @@ package
 		private var __X6:Array;
 		private var __X2:Array;
 		private var __X4:Array;
-		private var __G:int;
-		private var __H:int;
-		private var __J6:int;
+		//private var __G:int;
+		//private var __H:int;
+		private var __J6_reset:int;
 		private var __Q$:String;
 		private var __N$:String;
 		
-		private var __DUNGEON:int;
+		//private var __DUNGEON:int;
 		private var __class:String;
-		private var __monsters:DdMonsters;
+		private var __monsterTypes:DdMonsters;
 		private var __inventoryCount:int;
-		private var __items:DdItems;
+		private var __itemTypes:DdItems;
+		private var __spellTypesCleric:DdSpells;
+		private var __spellTypesWizard:DdSpells;
+		
 		private var __player:DdPlayer;
+		
+		private var __pendingFunction:Function;
+		private var __pendingArgs:Array;
+		private var __pendingCallback:Function;
+		private var __map:DdMap;
+		private var __state:DdGameState;
+		
 
 		public function DdAppStateMain()
 		{
@@ -89,6 +99,26 @@ package
 				__input.onComplete();
 			}
 			__output.output();
+			
+			if (__pendingFunction && !__output.printing)
+			{
+				if (__pendingArgs)
+				{
+					__pendingFunction(__pendingArgs);
+				}
+				else if (__pendingCallback)
+				{
+					__pendingFunction(__pendingCallback);
+				}
+				else
+				{
+					__pendingFunction();
+				}
+				
+				__pendingFunction = null;
+				__pendingCallback = null;
+				__pendingArgs = null;
+			}
 		}
 		
 		public override function init(_app:flash.display.Sprite, _stage:MovieClip):void
@@ -101,14 +131,18 @@ package
 			__UI_Main.gotoAndPlay("a");
 			
 			__txtTeletype = __UI_Main.txt_teletype;
-			__txtTeletype.y = 530;
-			__txtTeletype.height = DdOutput.LINE_HEIGHT * 2;
+			__txtTeletype.y = 670;
+			__txtTeletype.height = DdOutput.LINE_HEIGHT * 3;
 			//__txtPrompt = __UI_Main.txt_prompt;
 			//__txtInput = __UI_Main.txt_input;
 			//__btnEnter = __UI_Main.btn_enter;
 			
 			__input = new DdInput();
 			__output = new DdOutput(__txtTeletype);
+			
+			__pendingFunction = null;
+			__pendingArgs = null;
+			__pendingCallback = null;
 						
 			/*
 			FILE #N,"SPEC"  Open file "SPEC" as file N
@@ -149,66 +183,75 @@ package
 			00310 DATA "FLASK OF OIL",2,"SILVER CROSS",25,"SPARE FOOD",5
 			*/
 			
-			__J4 = 1;
-			__X = 0;
-			__J = 0;
-			__K = 0;
-			__X1 = 0;
-			__X3 = 0;
-			__J9 = 0; //RND(CLK(J9))
+			__J4 = 1; //difficulty
+			//__X = 0;  //equip count
+			//__J = 0;  //equipped item
+			//__K = 0;  //current monster type
+			__X1 = 0;  //player clerical spell count
+			__X3 = 0;  //selected clerical spell
+			__J9 = 0; //RND(CLK(J9))  /unused var randomize
 			__C = [0,0,0,0,0,0,0];
 			__C$ = ["STR","DEX","CON","CHAR","WIS","INT","GOLD"];
-			__W = new Array(100);
+			__W = new Array(100);  //inventory
 			__D = new Array(100); //DdGameBoard();
 			
 			__P = [10,15,3,5,2,25,2,15,30,50,1,1,2,25,5];
 			__I$ = ["SWORD","2-H-SWORD","DAGGER","MACE","SPEAR","BOW","ARROWS","LEATHER MAIL","CHAIN MAIL","TLTE MAIL","ROPE","SPIKES","FLASK OF OIL","SILVER CROSS","SPARE FOOD"];
-			__B = new Array(100); //(100,6)
-			__B$ = new Array(100);
-			__E = new Array(100);
-			__F = new Array(100);
-			__X5 = new Array(100);
-			__X6 = new Array(100);
-			__X2 = new Array(100);
-			__X4 = new Array(100);
-			__G = Math.random()*24 +2; //INT(RND(0)*24+2;
-			__H = Math.random()*24 +2; //INT(RND(0)*24+2);
+			__B = new Array(100); //(100,6)  //Monster stats
+			__B$ = new Array(100);  //Monster names
+			__E = new Array(100);  //unused
+			__F = new Array(100);  //unused
+			__X5 = new Array(100);  //clerical spell costs
+			__X6 = new Array(100);  //wizard spell costs
+			__X2 = new Array(100);  //clerical spell slots
+			__X4 = new Array(100);  //wizard spell slots
+			//__G = Math.random()*24 +2; //INT(RND(0)*24+2;
+			//__H = Math.random()*24 +2; //INT(RND(0)*24+2);
 			
-			__J6 = 0;
+			__J6_reset = 0;
+			//__DUNGEON = 0;
 			__class = "NONE";
-			__monsters = new DdMonsters();
-			__items = new DdItems();
+			__monsterTypes = new DdMonsters();
+			__itemTypes = new DdItems();
+			__spellTypesCleric = new DdSpells(DdSpells.CLERIC_TYPE);
+			__spellTypesWizard = new DdSpells(DdSpells.WIZARD_TYPE);
 			__player = new DdPlayer();
+			__map = new DdMap();
+			__state = new DdGameState();
 			
 			__inventoryCount = 0;
 			
 			DD1_Run();
 		}
 		
+		private function nextFunction(func:Function, args:Array=null, callback:Function=null):void
+		{
+			__pendingFunction = func;
+			__pendingArgs = args;
+			__pendingCallback = callback;
+		}
+			
 		private function input(input_handler:Function):void
 		{
 			__input.read(input_handler);
 		}
 		
-		private function print(msg:String, carriage_return:Boolean=true):void
+		private function print(msg:String="", carriage_return:Boolean=true):void
 		{
 			__output.print(msg, carriage_return);
 		}
 		
 		private function DD1_Run():void
 		{
-			
-			
 			//00320 PRINT "     DUNGEONS AND DRAGONS #1"
 			//00330 PRINT
 			print("     DUNGEONS AND DRAGONS #1");
-			print("");
+			print();
 			
 			//00340 PRINT "DO YOU NEED INSTUCTIONS ";
 			//00350 INPUT Q$
 			print("DO YOU NEED INSTUCTIONS", false);
 			input(onQueryInstructions);
-			
 		}
 		
 		private function onQueryInstructions(args:Array):void
@@ -224,7 +267,7 @@ package
 			//BUG 720 is not the right place to go
 			else if (__Q$ == "Y")
 			{
-				whoSaidYouCouldPlay();
+				nextFunction(whoSaidYouCouldPlay);
 			}
 			else
 			{
@@ -241,6 +284,7 @@ package
 			//01730 REM INSTRUCTIONS
 			//01740 PRINT "WHO SAID YOU COULD PLAY"
 			//01750 STOP
+			//01760 GO TO 00380
 			print("WHO SAID YOU COULD PLAY");
 		}
 		
@@ -252,51 +296,8 @@ package
 			if (__Q$ == "OLD")
 			{
 				print("DEBUG: READING OLD GAME");
-				/*
-				01770 REM READ OUT OLD GAME
-				01775 RESTORE #7
-				01780 READ #7,D
-				01790 READ #7,X
-				01800 READ #7,J
-				01810 READ #7,G
-				01820 READ #7,H
-				01830 READ #7,K
-				01840 FOR M=0 TO 25
-				01850 FOR N=0 TO 25
-				01860 READ #7,D(M,N)
-				01870 NEXT N
-				01880 NEXT M
-				01890 FOR M=1 TO X
-				01900 READ #7,W(M)
-				01910 NEXT M
-				01920 FOR M=1 TO 10
-				01930 READ #7,B$(M)
-				01940 FOR N=1 TO 6
-				01950 READ #7,B(M,N)
-				01960 NEXT N
-				01970 NEXT M
-				01980 FOR M=0 TO 7
-				01990 READ #7,C$(M)
-				02000 READ #7,C(M)
-				02010 NEXT M
-				02020 READ #7,N$
-				02030 READ #7,F1
-				02040 READ #7,F2
-				02050 FOR M=1 TO 15
-				02060 READ #7,I$(M)
-				02070 NEXT M
-				02080 READ #7,X3
-				02090 FOR M=1 TO X3
-				02100 READ #7,X4(M)
-				02110 NEXT M
-				02120 READ #7,X1
-				02130 FOR M=1 TO X1
-				02140 READ #7,X2(M)
-				02150 NEXT M
-				02151 READ #7,F2
-				02152 READ #7,F1
-				02160 GO TO 01510
-				*/
+				__map.load(__state.DUNGEON);
+
 			}
 			else
 			{
@@ -311,15 +312,15 @@ package
 		{
 			//00421 PRINT "CONTINUES RESET 1=YES,2=NO ";
 			//00422 INPUT J6
-			__DUNGEON = args[0];
+			__state.DUNGEON = args[0];
 			print("CONTINUES RESET 1=YES,2=NO", false);
 			input(onQueryContinues);
 		}
 		
 		private function onQueryContinues(args:Array):void
 		{
-			__J6 = int(args[0]);
-			__debug.msg(" onQueryContinues: " + __J6);
+			__J6_reset = int(args[0]);
+			__debug.msg(" onQueryContinues: " + __J6_reset);
 			//00430 REM ROLLING CHARICTERISTICS
 			//00440 PRINT "PLAYERS NME ";
 			//00450 INPUT N$
@@ -353,17 +354,18 @@ package
 				//00570 NEXT M
 				
 				//ROLL STATS
+				print();
 				print(__player.statsList());
 				//00580 PRINT
 				print("");
 			}
 			else
 			{
-				whoSaidYouCouldPlay();
+				nextFunction(whoSaidYouCouldPlay);
 				return;
 			}
 			
-			chooseClassification();
+			nextFunction(chooseClassification);
 		}
 		
 		private function chooseClassification():void
@@ -394,7 +396,7 @@ package
 			{
 				__player.rollStats();
 				print(__player.statsList());
-				chooseClassification();
+				nextFunction(chooseClassification);
 			}
 			else
 			{
@@ -449,6 +451,7 @@ package
 			//00700 PRINT "NUMBER","ITEM","PRICE"
 			//00705 PRINT"-1-STOP"
 			
+			print();
 			print("NUMBER\tITEM\tPRICE");
 			print("-1-STOP");
 			print("");
@@ -461,7 +464,7 @@ package
 			
 			if (_input == "NORM")
 			{
-				print(__items.itemList());
+				print(__itemTypes.itemList());
 			}
 			
 					
@@ -503,8 +506,8 @@ package
 			
 			if ((_input >= 1) && (_input <= 15))
 			{
-				var item:DdItem = __items.item(_input-1);
-				print(item.name + "\t" + item.price, false); //DEBUG
+				var item:DdItem = __itemTypes.item(_input-1);
+				print(item.name + ": ", false); //DEBUG
 				
 				if ((__player.GOLD - item.price) < 0)
 				{
@@ -569,15 +572,23 @@ package
 						input(onQueryStorePurhase);
 					}
 				}
+				else
+				{
+					__player.GOLD = __player.GOLD - item.price;
+					print("GP= " + __player.GOLD, false);
+					//__W[__inventoryCount++] = _input -1;
+					__player.inventory.addItem(item);
+					input(onQueryStorePurhase);
+				}
 			}
 			else
 			{
-				print("GP= " + __player.GOLD);
-				onExitStore();
+				print();
+				nextFunction(exitStore);
 			}
 		}
 		
-		private function onExitStore():void
+		private function exitStore():void
 		{
 			//01010 REM
 			//01020 PRINT "EQ LIST ";
@@ -611,27 +622,25 @@ package
 			}
 			else
 			{
+				print();
 				print(__player.inventory.inventoryList());
 			}
 			
+			print();
+			print();
 			print("YOUR CHARACTERISTICS ARE;");
 			if (__player.HP == 1) __player.HP = 2;
 			//print("HIT POINTS " + __player.HP);
 			print(__player.statsList()); //DEBUG
-			print("");
+			print();
 			
-			
+			nextFunction(setupDungeon);
 		}
 		
-		private function todo():void
+		private function setupDungeon():void
 		{
-			
-			// SUBROUTINE #1 01150
-			
+			__debug.msg("setupDungeon");
 			/*
-			
-			
-			
 			01400 REM READ DUNGEON AND START GAME
 			01410 RESTORE #D
 			1415 PRINT "READING DUNGEON NUM. ";D
@@ -647,24 +656,65 @@ package
 			01448 D(M,N)=8
 			01450 NEXT N
 			01460 NEXT M
+			*/
 			
-			01470 REM YEA START
-			01480 PRINT
-			01490 PRINT
-			01500 PRINT
-			01510 PRINT "WELCOME TO DUNGEON #";D
-			01520 PRINT "YOU ARE AT (";G;",";H;")"
-			01530 PRINT
-			01540 PRINT "COMANDS LIST",
-			01541 INPUT Q$
-			01542 IF Q$<>"YES" THEN 01590
-			01550 PRINT
-			01560 PRINT "1=MOVE  2=OPEN DOOR  3=SEARCH FOR TRAPS AND SECRET DOORS"
-			01570 PRINT "4=SWITCH WEAPON HN HAND  5=FIGHT"
-			01580 PRINT "6=LOOK AROUND  7=SAVE GAME  8=USE MAGIC  9=BUY MAGIC"
-			01585 PRINT"0=PASS  11=BUY H.P."
-			01590 PRINT "COMMAND=";
-			01600 INPUT T
+			__map.generate(__state.DUNGEON);
+			//print(__map.map(__state));
+			//print();
+			
+			//01470 REM YEA START
+			//01480 PRINT
+			//01490 PRINT
+			//01500 PRINT
+			//01510 PRINT "WELCOME TO DUNGEON #";D
+			//01520 PRINT "YOU ARE AT (";G;",";H;")"
+			//01530 PRINT
+			//01540 PRINT "COMANDS LIST",
+			//01541 INPUT Q$
+			
+			input(start);
+		}
+		
+		private function start(args:Array):void
+		{
+			print();
+			print();
+			print("WELCOME TO DUNGEON #" + __state.DUNGEON);
+			print("YOU ARE AT (" + __state.G + "," + __state.H + ")");
+			print();
+			
+			nextFunction(queryCommands);
+			
+		}
+		
+		private function queryCommands():void
+		{
+			
+			print("COMANDS LIST:");
+			
+			//01542 IF Q$<>"YES" THEN 01590
+			//01550 PRINT
+			//01560 PRINT "1=MOVE  2=OPEN DOOR  3=SEARCH FOR TRAPS AND SECRET DOORS"
+			//01570 PRINT "4=SWITCH WEAPON HN HAND  5=FIGHT"
+			//01580 PRINT "6=LOOK AROUND  7=SAVE GAME  8=USE MAGIC  9=BUY MAGIC"
+			//01585 PRINT"0=PASS  11=BUY H.P."
+			//01590 PRINT "COMMAND=";
+			//01600 INPUT T
+			
+			print("1=MOVE  2=OPEN DOOR  3=SEARCH FOR TRAPS AND SECRET DOORS");
+			print("4=SWITCH WEAPON HN HAND  5=FIGHT");
+			print("6=LOOK AROUND  7=SAVE GAME  8=USE MAGIC  9=BUY MAGIC");
+			print("0=PASS  11=BUY H.P.");
+			print("COMMAND=");
+			input(onCommand);
+						
+		}
+		
+		private function onCommand(args:Array):void
+		{
+			__debug.msg("onCommand: " + args);
+			var _input:int = args[0];
+			/*
 			01605 IF T=11 THEN 10830
 			01606 IF T=12 THEN 11000
 			01610 IF T=1 THEN 02170
@@ -680,26 +730,90 @@ package
 			01705 IF T=0 THEN 07000
 			01710 PRINT "COME ON ";
 			01720 GO TO 01590
+			*/
 			
+			switch(_input)
+			{
+				case 1:
+				{
+					nextFunction(queryMoveDirection);
+					break;
+				}
+					
+				default:
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+			}
+		}
+		
+		private function queryMoveDirection():void
+		{
+			//02170 REM MOVE
+			//02175 PRINT "YOU ARE AT ";G;" , ";H
+			//02180 PRINT "  DOWN  RIGHT  LEFT  OR  UP"
+			//02190 INPUT Q$
+			print("YOU ARE AT (" + __state.G + "," + __state.H + ")");
+			print("  DOWN  RIGHT  LEFT  OR  UP", false);
+			input(onMoveDirection);
+		}
+		
+		private function onMoveDirection(args:Array):void
+		{
+			var _input:String = args[0];
 			
-			01760 GO TO 00380
+			//02200 IF Q$="RIGHT" THEN 02260
+			//02205 IF Q$="R" THEN 02260
+			//02210 IF Q$="LEFT" THEN 02290
+			//02215 IF Q$="L" THEN 02290
+			//02220 IF Q$="UP" THEN 02320
+			//02225 IF Q$="U" THEN 02320
+			//02230 IF Q$="DOWN" THEN 02350
+			//02235 IF Q$="D" THEN 02350
+			//02240 GO TO 02180
 			
+			switch(_input.charAt(0))
+			{
+				case "D":
+				{
+					__state.move(0,1);
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "R":
+				{
+					__state.move(1,0);
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "L":
+				{
+					__state.move(-1,0);
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "U":
+				{
+					__state.move(0,-1);
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "M":
+				{
+					print(__map.map(__state));
+					nextFunction(queryMoveDirection);
+					break;
+				}
+					
+				default:
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+			}
 			
-			
-			02170 REM MOVE
-			02175 PRINT "YOU ARE AT ";G;" , ";H
-			02180 PRINT "  DOWN  RIGHT  LEFT  OR  UP"
-			02190 INPUT Q$
-			02200 IF Q$="RIGHT" THEN 02260
-			02205 IF Q$="R" THEN 02260
-			02210 IF Q$="LEFT" THEN 02290
-			02215 IF Q$="L" THEN 02290
-			02220 IF Q$="UP" THEN 02320
-			02225 IF Q$="U" THEN 02320
-			02230 IF Q$="DOWN" THEN 02350
-			02235 IF Q$="D" THEN 02350
-			02240 GO TO 02180
-			
+			/*
 			02250 REM
 			02260 LET S=0
 			02270 LET T=1
@@ -721,26 +835,37 @@ package
 			02410 IF D(G+S,H+T)=5 THEN 03060
 			02411 IF D(G+S,H+T)=6 THEN 02413
 			02412 GO TO 02480
+			
+			GOLD
 			02413 PRINT "AH......GOLD......."
 			02414 G9=INT(RND(0)*500+10)
 			02415 PRINT G9;"PIECES"
 			02416 C(7)=C(7)+G9
 			02417 PRIT "GP= ";C(7)
+			
+			POISON CHECK
 			02418 D(G+S,H+T)=0
 			02419 IF RND(0)>.2 THEN 02430
 			02420 PRINT "       POISON      "
 			02421 LET C(0)=C(0)-INT(RND(0)*4+1)
 			02422 PRINT "HP= ";C(0)
 			02423 GO TO 02430
+			
+			POTION STR +1 then poison check
 			02424 LET C(1)=C(1)+1
 			02425 GO TO 02418
+			
+			POTION CON +1 then poison check
 			02426 LET C(3)=C(3)+1
 			02429 GO TO 02418
+			
+			MOVE
 			02430 LET G=G+S
 			02440 LET H=H+T
 			02450 PRINT "DONE"
 			02460 GO TO 07000
 			
+			WALL
 			02470 REM
 			02480 PRINT "YOU RAN INTO A WALL"
 			02490 IF RND(0)*12+1>9 THEN 02520
@@ -749,6 +874,8 @@ package
 			02520 PRINT "AND LOOSE 1 HIT POINT"
 			02530 LET C(0)=C(0)-1
 			02540 GO TO 07000
+			
+			TRAP
 			02550 PRINT "OOOOPS A TRAP AND YOU FELL IN "
 			02560 IF RND(0)*3>2 THEN 02580
 			02570 GO TO 02600
@@ -794,6 +921,8 @@ package
 			02960 PRINT "OOPS H.P. LOOSE 1"
 			02970 LET C(0)=C(0)-1
 			02980 GO TO 02940
+			
+			SECRET DOOR
 			02990 IF INT(RND(0)*6)+1>4 THEN 0300
 			03000 GO TO 02480
 			03010 PRINT "YOU JUST RAN INTO A SECRET DOOR"
@@ -801,6 +930,8 @@ package
 			03030 LET G=G+S
 			03040 LET H=H+T
 			03050 GO TO 02450
+			
+			MONSTER
 			03060 PRINT "YOU RAN INTO THE MONSTER "
 			03070 PRINT "HE SHOVES YOU BACK"
 			03080 PRINT
@@ -808,8 +939,24 @@ package
 			03100 PRINT "YOU LOOSE 6 HIT POINT "
 			03110 LET C(0)=C(0)-6
 			03120 GO TO 07000
+			*/
+			
+		}
+		
+		//MOVE
+		private function openDoor():void
+		{
+			/*
 			03130 PRINT "DOOR LEFT RIGHT UP OR DOWN"
 			03140 INPUT Q$
+			*/
+			input(onDoorDirection);
+		}
+		
+		private function onDoorDirection(args:Array):void
+		{
+
+			/*
 			03150 IF Q$="LEFT" THEN 03200
 			03155 IF Q$="L" THEN 03200
 			03160 IF Q$="RIGHT" THEN 03230
@@ -842,6 +989,13 @@ package
 			03400 LET G=G+S
 			03410 LET H=H+T
 			03420 GO TO 02450
+
+			*/
+		}
+		
+		private function search():void
+		{
+			/*
 			03430 PRINT "SEARCH.........SEARCH...........SEARCH..........."
 			03440 IF INT(RND(0)*40)<C(5)+C(6) THEN 03470
 			03450 PRINT "NO NOT THAT YOU CAN TELL"
@@ -863,10 +1017,23 @@ package
 			03600 PRINT "IT IS AT ";M;"VERTICALY  ";N;"HORAZANTALY"
 			03610 LET Z=1
 			03620 GO TO 03510
-			
+			*/
+		}
+		
+		private function chooseWeapon():void
+		{
+			/*
 			03630 REM
 			03640 PRINT "WHICH WEAPON WILL YOU HOLD, NUM OF WEAPON "
 			03650 INPUT Y
+			*/
+			input(onWhichWeapon);
+		}
+		
+		private function onWhichWeapon(args:Array):void
+		{
+			
+			/*
 			03660 IF Y=0 THEN 03720
 			03670 FOR M=1 TO X
 			03680 IF W(M)=Y THEN 03720
@@ -876,10 +1043,15 @@ package
 			03720 PRINT "O.K. YOU ARE NOW HOLDING A ";I$(Y)
 			03730 LET J=Y
 			03740 GO TO 07000
-			
+			*/
+		}
+		
+		private function fight():void
+		{
+			/*
 			03750 REM FIGHTING BACK
 			03760 PRINT "YOUR WEAPON IS ";I$(J)
-			03770 IF K=0 THEN 01590
+			03770 IF K=0 THEN 01590  //goto command prompt
 			03780 PRINT B$(K)
 			03790 PRINT "HP=";B(K,3)
 			03800 IF J=0 THEN 04460
@@ -893,10 +1065,24 @@ package
 			03880 PRINT "FOOD ???.... WELL O.K."
 			03890 PRIN'T "IS IT TO HIT OR DISTRACT";
 			03900 INPUT Q$
+			*/
+			input(onHitOrDistract);
+		}
+		
+		private function onHitOrDistract(args:Array):void
+		{
+			/*
 			03910 IF Q$="HIT" THEN 04330
 			03920 PRINT "THROW A-A=VE,B-BELOW,L-LEFT,OR R-RIGHT OF THE MONSTER";
 			03930 LET Z5=0
 			03940 INPUT Q$
+			*/
+			input(onThrowDirection);
+		}
+		
+		private function onThrowDirection(args:Array):void
+		{
+			/*
 			03950 IF Q$="B" THEN 04010
 			03960 IF Q$="A" THEN 04040
 			03970 IF Q$="L" THEN 04070
@@ -954,6 +1140,15 @@ package
 			04470 PRINT "DO YOU REALIZE YOU ARE BARE HANDED"
 			04480 PRINT "DO YOU WANT TO MAKE ANOTHER CHOICE";
 			04490 INPUT Q$
+			*/
+			input(onChooseAnotherWeapon);
+			
+		}
+		
+		private function onChooseAnotherWeapon(args:Array):void
+		{
+			
+			/*
 			04500 IF Q$="NO" THEN 04520
 			04510 GO TO 01590
 			04520 PRINT"O.K. PUNCH BITE SCRATCH HIT ........"
@@ -1068,21 +1263,24 @@ package
 			05410 GO TO 01590
 			05420 PRINT "MISS"
 			05430 GO TO 07000
-			
+
+			*/
+		}
+		
+		private function useWeapon():void
+		{
+			/*
 			05440 REM
 			05450 FOR M=1 TO X
 			05460 IF W(M)=J THEN 05500		// CALL DD1_08410();
 			05470 NEXT M
 			05480 PRINT "NO WEAPON FOUND"
 			05490 GO TO 01590
-			
 			*/
 			
 			DD1_08410(); //05500 GOSUB 08410
-			
+
 			/*
-			
-			
 			05510 IF J=5 THEN 05760
 			05520 IF J=6 THEN 05800
 			05530 IF J=7 THEN 05840
@@ -1094,6 +1292,13 @@ package
 			05590 IF J=13 THEN 06080
 			05600 PRINT "AS A CLUB OR SIGHT";
 			05610 INPUT Q$
+			*/
+			input(onClubOrSight);
+		}
+		
+		private function onClubOrSight(args:Array):void
+		{
+			/*
 			05620 IF Q$="SIGHT" THEN 05650
 			05630 IF J=14 THEN 06120
 			05640 GO TO 05480
@@ -1178,7 +1383,12 @@ package
 			06360 LET J=0
 			06370 IF R2>0 THEN 01590
 			06380 GO TO 07000
-			
+			*/
+		}
+		
+		private function drawMap():void
+		{
+			/*
 			06390 REM LOOKING
 			06400 FOR M=-5 TO 5
 			06410 FOR N=-5 TO 5
@@ -1202,7 +1412,12 @@ package
 			06580 GO TO 06510
 			06590 PRINT 9;
 			06600 GO TO 06510
-			
+			*/
+		}
+		
+		private function dungeonStore():void
+		{
+			/*
 			06610 REM SAVE GAME
 			06615 RESTORE #7
 			06620 WRITE #7,D
@@ -1246,6 +1461,13 @@ package
 			06980 WRITE #7,F1
 			06985 GO TO 01590
 			06990 STOP
+			*/
+		}
+		
+		private function checkHealth():void
+		{
+			/*
+			/*
 			07000 IF K1=-1 THEN 08290
 			07010 IF C(0)<2 THEN 08160
 			07020 IF K>0 THEN 07160		//CALL DD1_08410();
@@ -1256,6 +1478,14 @@ package
 			07070 LET C(7)=C(7)-100
 			07080 PRINT "WANT TO BUY MORE EQUIPMENT"
 			07090 INPUT Q$
+			*/
+			input(onBuyMoreEquipment)
+		}
+		
+		private function onBuyMoreEquipment(args:Array):void
+		{
+			
+			/*
 			07100 IF Q$="YES" THEN 07130
 			07110 IF RND(0)*20>10 THEN 07830
 			07120 GO TO 01590
@@ -1266,10 +1496,11 @@ package
 			*/
 			
 			DD1_08410(); //07160 GOSUB 08410
-			
+		}
+		
+		private function moveMonster():void
+		{
 			/*
-			
-			
 			07170 IF B(K,3)<1 THEN 08290
 			07180 IF R1<2.0 THEN 07600
 			07190 IF P0>10 THEN 01590
@@ -1357,6 +1588,15 @@ package
 			07880 PRINT "ALL MONSTERS DEAD"
 			07890 PRINT "RESET";
 			07900 INPUT Q$
+			*/
+			
+			input(onQueryReset);
+		}
+		
+		private function onQueryReset(args:Array):void
+		{
+			
+			/*
 			07910 IF Q$="YES" THEN 07930
 			07920 STOP
 			
@@ -1382,12 +1622,17 @@ package
 			08080 NEXT N
 			08090 NEXT M
 			08100 GO TO 08010
-			
 			08110 REM
 			08120 LET D(G+M,H+N)=5
 			08130 LET F1=G+M
 			08140 LET F2=H+N
 			08150 GO TO 07000
+			*/
+		}
+		
+		private function checkHealth2():void
+		{
+			/*
 			08160 IF C(0)<1  THEN 08190
 			08170 PRINT "WATCH IT H.P.=";C(0)
 			08180 GO TO 07020
@@ -1401,6 +1646,13 @@ package
 			08260 LET C(3)=C(3)-2
 			08270 LET C(0)=C(0)+1
 			08280 GO TO 08190
+			*/
+		}
+		
+		private function monsterKilled():void
+		{
+			/*
+			MONSTER KILLED
 			08290 K1=0
 			08300 LET C(7)=C(7)+B(K,6)
 			08310 LET D(F1,F2)=0
@@ -1417,18 +1669,15 @@ package
 			08383 B(K,6)=B(K,5)*B(K,1)
 			08390 LET K=0
 			08400 GO TO 07000
-			
 			*/
 			
-			// SUBROUTINE #2 08410
-			
+			// SUBROUTINE #2 
+			DD1_08410();
+		}
+		
+		private function useSpells():void
+		{
 			/*
-			08620 LET R2=3
-			08630 RETURN
-			08640 LET R2=2
-			08650 RETURN
-			08660 LET R2=1
-			08670 RETURN
 			08680 PRINT "MAGIC"
 			08690 IF J<>0 THEN 08740
 			08700 IF C$(0)="CLERIC" THEN 08760
@@ -1439,6 +1688,15 @@ package
 			08750 GO TO 07000
 			08760 PRINT "CLERICAL SPELL #";
 			08770 INPUT Q
+			*/
+			
+			input(onQuerySpellNumCleric);
+		}
+		
+		private function onQuerySpellNumCleric(args:Array):void
+		{
+			
+			/*
 			08780 FOR M=1 TO X1
 			08790 IF Q=X2(M) THEN 08830
 			08800 NEXT M
@@ -1496,6 +1754,13 @@ package
 			09300 GO TO 09010
 			09310 PRINT "SPELL #";
 			09320 INPUT Q
+			*/
+			input(onQuerySpellNumWizard);
+		}
+		
+		private function onQuerySpellNumWizard(args:Array):void
+		{
+			/*
 			09330 FOR M=1 TO X3
 			09340 IF Q=X4(M) THEN 09390
 			09350 NEXT M
@@ -1545,12 +1810,27 @@ package
 			09790 GO TO 04220
 			09800 PRINT "INPUT CO-ORDINATES";
 			09810 INPUT M,N
+			*/
+			input(onQuerySpellCoordinates1);
+		}
+		
+		private function onQuerySpellCoordinates1(args:Array):void
+		{
+			/*
+			
 			09820 PRINT "DONE"
 			09830 LET G=M
 			09840 LET H=N
 			09850 GO TO 07000
 			09860 PRINT "INPUT CO-ORDINATES";
 			09870 INPUT M,N
+			*/
+			input(onQuerySpellCoordinates2);
+		}
+				
+		private function onQuerySpellCoordinates2(args:Array):void
+		{
+			/*
 			09880 IF D(M,N)=0 THEN 09920
 			09890 IF D(M,N)=1 THEN 09920
 			09900 PRINT "FAILED"
@@ -1568,6 +1848,14 @@ package
 			10010 GO TO 01590
 			10020 PRINT "DO YOU KNOW THE CHOICES";
 			10030 INPUT Q$
+			*/
+			
+			input(onQueryDoYouKnowTheChoicesCleric);
+		}
+		
+		private function onQueryDoYouKnowTheChoicesCleric(args:Array):void
+		{
+			/*
 			10040 IF Q$="YES" THEN 10100
 			10050 PRINT "1-KILL-500  5-MAG. MISS. #1-100"
 			10060 PRINT "2-MAG. MISS. #2-200  6-MAG. MISS. #3-300"
@@ -1575,6 +1863,14 @@ package
 			10080 PRINT "4-FIND ALL TRAPS-200  8-FIND ALL S.DOORS-200"
 			10090 PRINT "INPUT # WANTED   NEG.NUM.TO STOP";
 			10100 INPUT Q
+			*/
+			
+			input(onQueryChooseSpellCleric);
+		}
+		
+		private function onQueryChooseSpellCleric(args:Array):void
+		{
+			/*
 			10110 LET X5(1)=500
 			10120 LET X5(2)=200
 			10130 LET X5(3)=200
@@ -1602,6 +1898,14 @@ package
 			10350 GO TO 01590
 			10360 PRINT "DO YOU KNOW THE SPELLS";
 			10370 INPUT Q$
+			*/
+			
+			input(onQueryDoYouKnowTheChoicesWizard);
+		}
+		
+		private function onQueryDoYouKnowTheChoicesWizard(args:Array):void
+		{
+			/*
 			10380 IF Q$="YES" THEN 10450
 			10390 PRINT "1-PUSH-75   6-M. M. #1-100"
 			10400 PRINT "2-KIHL-500  7-M. M. #2-200"
@@ -1610,6 +1914,14 @@ package
 			10430 PRINT "5-CHANGE 1+0-600  10-CHANGE 0+1-600"
 			10440 PRINT "#OF ONE YOU WANT  NEG.NUM.TO STOP";
 			10450 INPUT Q
+			*/
+			
+			input(onQueryChooseSpellWizard);
+		}
+		
+		private function onQueryChooseSpellWizard(args:Array):void
+		{
+			/*
 			10460 LET X6(1)=75
 			10470 LET X6(2)=500
 			10480 LET X6(3)=200
@@ -1636,7 +1948,12 @@ package
 			10690 PRINT "#";X4(M)
 			10700 NEXT M
 			10710 GO TO 01590
-			
+			*/
+		}
+		
+		private function printFullMap():void
+		{
+			/*
 			10720 REM
 			10730 REM CHEATING
 			10740 FOR M=0 TO 25
@@ -1646,11 +1963,24 @@ package
 			10780 PRINT
 			10790 NEXT M
 			10800 GO TO 01590
-			
+			*/
+		}
+		
+		private function buyHP():void
+		{
+			/*
 			10810 REM
 			10820 GO TO 00380
 			10830 PRINT "HOW MANY 200 GP. EACH ";
 			10840 INPUT Q
+			*/
+			
+			input(onQueryHowManyHitPointsToBuy);
+		}
+		
+		private function onQueryHowManyHitPointsToBuy(args:Array):void
+		{
+			/*
 			10850 IF C(7)-200*Q<0 THEN 10900
 			10860 LET C(0)=C(0)+INT(Q)
 			10870 LET C(7)=C(7)-INT(Q*200)
@@ -1662,15 +1992,44 @@ package
 			10890 GO TO 07000
 			10900 PRINT "NO"
 			10910 GO TO 10830
+			*/
+		}
+		
+		private function save():void
+		{
+			/*
 			11000 PRINT "DNG";
 			11010 INPUT D2
+			*/
+			input(onQuerySaveDungeonNumber);
+		}
+		
+		private function onQuerySaveDungeonNumber(args:Array):void
+		{
+			/*
 			11020 PRINT "X,Y,C";
 			11030 INPUT X9,Y9,C9
+			*/
+			
+			input(onQuerySaveXYC);
+		}
+		
+		private function onQuerySaveXYC(args:Array):void
+		{
+			/*
 			11035 IF C9<0 THEN 11060
 			11040 LET D(X9,Y9)=C9
 			11050 GO TO 11020
 			11060 PRINT "SAVE"
 			11061 INPUT Q
+			*/
+			
+			input(onQueryConfirmSave);
+		}
+		
+		private function onQueryConfirmSave(args:Array):void
+		{
+			/*
 			11062 IF Q<>1 THEN 7000
 			11063 FOR M=0 TO 25
 			11070 FOR N=0 TO 25
@@ -1679,34 +2038,37 @@ package
 			11100 NEXT M
 			11110 GO TO 7000
 			11120 END
-			
-			REM TRANSCRIBED IN 2014 BY DEJAY CLAYTON, FROM A SCAN OF THE ORIGINAL PDP11
-			REM TELETYPE PROGRAM LISTING MADE AVAILBLE BY RICHARD GARRIOTT.
-			REM
-			REM NOTE: THIS TRANSCRIPTION CONTAINS ALL TYPOS AND ERRORS THAT WERE PRESENT
-			REM IN THE ORIGINAL SCANNED PROGRAM LISTING.
-			REM ------------------------------------------------------------------------
-			REM
-			REM VERSION 1.3
-			REM
-			REM VERSION HISTORY:
-			REM ----------------
-			REM VERSION 1.3  2014-04-20: FIXED TRANSCRIPTION ERRORS IN LINES 00300, 00430,
-			REM                          01090, 01240, 01920, 02940, 03920, 04750, 05980,
-			REM                          07290, 07300, 07931, 08290, 08470, 08720, 09080
-			REM
-			REM VERSION 1.2  2014-04-19: FIXED TRANSCRIPTION ERROR IN LINE 06450
-			REM
-			REM VERSION 1.1C 2014-04-17: CREATED CONTINUOUS VERSION FOR EASIER READING
-			REM 
-			REM VERSION 1.1  2014-04-17: ADDED NOTICES AND VERSION HISTORY
-			REM
-			REM VERSION 1.0  2014-04-17: INITIAL VERSION
-			
 			*/
 		}
+					
+/*
+REM TRANSCRIBED IN 2014 BY DEJAY CLAYTON, FROM A SCAN OF THE ORIGINAL PDP11
+REM TELETYPE PROGRAM LISTING MADE AVAILBLE BY RICHARD GARRIOTT.
+REM
+REM NOTE: THIS TRANSCRIPTION CONTAINS ALL TYPOS AND ERRORS THAT WERE PRESENT
+REM IN THE ORIGINAL SCANNED PROGRAM LISTING.
+REM ------------------------------------------------------------------------
+REM
+REM VERSION 1.3
+REM
+REM VERSION HISTORY:
+REM ----------------
+REM VERSION 1.3  2014-04-20: FIXED TRANSCRIPTION ERRORS IN LINES 00300, 00430,
+REM                          01090, 01240, 01920, 02940, 03920, 04750, 05980,
+REM                          07290, 07300, 07931, 08290, 08470, 08720, 09080
+REM
+REM VERSION 1.2  2014-04-19: FIXED TRANSCRIPTION ERROR IN LINE 06450
+REM
+REM VERSION 1.1C 2014-04-17: CREATED CONTINUOUS VERSION FOR EASIER READING
+REM 
+REM VERSION 1.1  2014-04-17: ADDED NOTICES AND VERSION HISTORY
+REM
+REM VERSION 1.0  2014-04-17: INITIAL VERSION
+
+*/
 		
-		/*
+		
+		/* MOVED TO MONSTERS CLASS
 		public function DD1_01150():void
 		{
 			01150 DATA "MAN",1,13,26,1,1,500
@@ -1752,6 +2114,12 @@ package
 			08590 IF RND(0)*2>1.7 THEN 08660
 			08600 LET R2=0
 			08610 RETURN
+			08620 LET R2=3
+			08630 RETURN
+			08640 LET R2=2
+			08650 RETURN
+			08660 LET R2=1
+			08670 RETURN
 			*/
 		}
 		

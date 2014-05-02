@@ -3,6 +3,7 @@ package
 	import flash.text.TextField;
 	
 	import org.wwlib.flash.WwAudioManager;
+	import org.wwlib.utils.WwDebug;
 	
 	/**
 	 * ...
@@ -11,7 +12,7 @@ package
 	 */
 	public class DdOutput
 	{
-		public static var LINE_HEIGHT:int = 30;
+		public static var LINE_HEIGHT:int = 16;
 		
 		private var __outputTextfield:TextField;
 		private var __pendingOutput:Vector.<String>;
@@ -44,18 +45,36 @@ package
 			{
 				if (__outputIndex < __outputArray.length)
 				{
-					var _char:String = __outputArray[__outputIndex++];
-					__outputTextfield.text += _char;
+					var _char:String = __outputArray[__outputIndex];
+					
 					if (_char == "\n")
 					{
-						WwAudioManager.playSound("click");
+						__outputTextfield.text += _char;
+						WwAudioManager.playSound("return");
+						__outputTextfield.y -= LINE_HEIGHT;
+						__outputTextfield.height += LINE_HEIGHT;
+					}
+					else if (_char.length > 1)
+					{
+						//WwDebug.instance.msg(" printing: " + _char);
+						if (__outputIndex <= __outputArray.length)
+						{
+							__outputTextfield.text += "\n" + _char;
+						}
+						else
+						{
+							__outputTextfield.text += _char;
+						}
+						WwAudioManager.playSound("return");
 						__outputTextfield.y -= LINE_HEIGHT;
 						__outputTextfield.height += LINE_HEIGHT;
 					}
 					else
 					{
-						WwAudioManager.playSound("click_fast");
+						__outputTextfield.text += _char;
+						WwAudioManager.playSound("key");
 					}
+					__outputIndex++;
 				}
 				else
 				{
@@ -66,7 +85,16 @@ package
 			{
 				var new_msg:String = __pendingOutput.shift();
 				__outputIndex = 0;
-				__outputArray = new_msg.split("");
+				
+				if (new_msg == "\n")
+				{
+					__outputArray = ["\n"];
+					WwDebug.instance.msg(" printing empty line: " + __outputArray);
+				}
+				else
+				{
+					__outputArray = new_msg.split("\n"); //new_msg.split("");
+				}
 				__printing = true;
 			}
 		}
@@ -75,6 +103,12 @@ package
 		{
 			return __pendingOutput.length > 0;
 		}
+
+		public function get printing():Boolean
+		{
+			return __printing;
+		}
+
 
 	}
 }

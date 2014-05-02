@@ -19,12 +19,17 @@ package
 		private var __INT:int;
 		private var __GOLD:int;
 		
+		private var __clericSpells:Array;
+		private var __wizardSpells:Array;
+		
 		private var __inventory:DdInventory;
 		
 		public function DdPlayer()
 		{
 			rollStats();
 			__inventory = new DdInventory();
+			__clericSpells = new Array();
+			__wizardSpells = new Array();
 		}
 		
 		public function rollStats():void{
@@ -134,6 +139,16 @@ package
 		public function set HP(value:int):void
 		{
 			__HP = value;
+		}
+
+		public function get clericSpells():Array
+		{
+			return __clericSpells;
+		}
+
+		public function get wizardSpells():Array
+		{
+			return __wizardSpells;
 		}
 
 

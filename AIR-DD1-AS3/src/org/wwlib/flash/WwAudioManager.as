@@ -1,17 +1,16 @@
 package org.wwlib.flash
 {
 	//import org.wwlib.WwColoring.audio.applause;
-	import org.wwlib.dd1.audio.chime;
-	import org.wwlib.dd1.audio.click1;
-	import org.wwlib.dd1.audio.clickFast;
-	//import org.wwlib.WwColoring.audio.mainMenuTag;
-	//import org.wwlib.WwColoring.audio.mainMenuSting;
-	//import org.wwlib.WwColoring.audio.setupLoop;
-	
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import flash.utils.Dictionary;
+	
+	import org.wwlib.dd1.audio.carriageReturn;
+	import org.wwlib.dd1.audio.chime;
+	import org.wwlib.dd1.audio.click1;
+	import org.wwlib.dd1.audio.clickFast;
+	import org.wwlib.dd1.audio.key;
 
 	/**
 	 * ...
@@ -29,6 +28,8 @@ package org.wwlib.flash
 		//private static var mainMenuAudioSting:Sound;
 		//private static var setupLoopSound:Sound;
 		private static var soundChannel:SoundChannel;
+		private static var keySound:Sound;
+		private static var returnSound:Sound;
 		
 		public function WwAudioManager()
 		{
@@ -44,6 +45,8 @@ package org.wwlib.flash
 			//mainMenuAudioTag = new mainMenuTag();
 			//mainMenuAudioSting = new mainMenuSting();
 			//setupLoopSound = new setupLoop();
+			keySound = new key();
+			returnSound = new carriageReturn();
 		}
 		
 		public static function playSound(id:String):SoundChannel
@@ -66,14 +69,14 @@ package org.wwlib.flash
 					soundChannel = clickFastSound.play();
 					break;
 				}
-				//case "applause":
-				//{
-				//	soundChannel = applauseSound.play();
-				//	break;
-				//}
-				case "chime":
+				case "key":
 				{
-					soundChannel = chimeSound.play();
+					soundChannel = keySound.play();
+					break;
+				}
+				case "return":
+				{
+					soundChannel = returnSound.play();
 					break;
 				}
 				case "mainMenu":

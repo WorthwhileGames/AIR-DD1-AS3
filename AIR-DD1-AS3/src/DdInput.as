@@ -32,7 +32,7 @@ package
 			__inputString = "";
 			__reading = false;
 			__complete = false;
-			WwDebug.instance.msg("  reset: " + __reading);
+			//WwDebug.instance.msg("  reset: " + __reading);
 		}
 		
 		public function read(on_complete_handler:Function):void
@@ -43,7 +43,7 @@ package
 			__reading = true;
 			__complete = false;
 			__inputString = "";
-			WwDebug.instance.msg("  read: " + __reading);
+			//WwDebug.instance.msg("  read: " + __reading);
 		}
 		
 		public function appendCharacter(_char:String):void
@@ -61,7 +61,7 @@ package
 			{
 				if (key_code == 13)
 				{
-					__readBuffer.push("\n");
+					//__readBuffer.push("\n");
 					__complete = true;
 				}
 				else
