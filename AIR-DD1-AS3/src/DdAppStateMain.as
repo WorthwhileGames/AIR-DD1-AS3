@@ -71,6 +71,7 @@ package
 		private var __pendingCallback:Function;
 		private var __map:DdMap;
 		private var __state:DdGameState;
+		private var __commands:Array;
 		
 
 		public function DdAppStateMain()
@@ -220,6 +221,10 @@ package
 			__state = new DdGameState();
 			
 			__inventoryCount = 0;
+			
+			__commands = new Array("PASS", "MOVE", "OPEN DOOR", "SEARCH FOR TRAPS AND SECRET DOORS", "SWITCH WEAPON HN HAND", "FIGHT", "LOOK AROUND", "SAVE GAME", "USE MAGIC", "BUY MAGIC", "BUY H.P.");
+			
+			
 			
 			DD1_Run();
 		}
@@ -732,16 +737,88 @@ package
 			01720 GO TO 01590
 			*/
 			
+			//DEBUG
+			if (_input >= 0 && _input <=12)
+			{
+				print();
+				print(__commands[_input]);
+				print();
+			}
+			
 			switch(_input)
 			{
-				case 1:
+				case 0: //PASS
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 1: //MOVE
 				{
 					nextFunction(queryMoveDirection);
+					break;
+				}
+				case 2: //OPEN DOOR
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 3: //SEARCH FOR TRAPS AND SECRET DOORS
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 4://SWITCH WEAPON HN HAND
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 5: //FIGHT
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 6: //LOOK AROUND
+				{
+					print(__map.look(__state));
+					nextFunction(queryCommands);
+					break;
+				}
+				case 7: //SAVE GAME
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 8: //USE MAGIC
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 9: //BUY MAGIC
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 10:
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 11: //BUY H.P.
+				{
+					nextFunction(queryCommands);
+					break;
+				}
+				case 12: //SAVE DUNGEON
+				{
+					nextFunction(queryCommands);
 					break;
 				}
 					
 				default:
 				{
+					print();
+					print("COME ON ");
+					print();
 					nextFunction(queryCommands);
 					break;
 				}
@@ -950,10 +1027,10 @@ package
 			03130 PRINT "DOOR LEFT RIGHT UP OR DOWN"
 			03140 INPUT Q$
 			*/
-			input(onDoorDirection);
+			input(onQueryDoorDirection);
 		}
 		
-		private function onDoorDirection(args:Array):void
+		private function onQueryDoorDirection(args:Array):void
 		{
 
 			/*
@@ -1027,10 +1104,10 @@ package
 			03640 PRINT "WHICH WEAPON WILL YOU HOLD, NUM OF WEAPON "
 			03650 INPUT Y
 			*/
-			input(onWhichWeapon);
+			input(onQueryWhichWeapon);
 		}
 		
-		private function onWhichWeapon(args:Array):void
+		private function onQueryWhichWeapon(args:Array):void
 		{
 			
 			/*
@@ -1066,10 +1143,10 @@ package
 			03890 PRIN'T "IS IT TO HIT OR DISTRACT";
 			03900 INPUT Q$
 			*/
-			input(onHitOrDistract);
+			input(onQueryHitOrDistract);
 		}
 		
-		private function onHitOrDistract(args:Array):void
+		private function onQueryHitOrDistract(args:Array):void
 		{
 			/*
 			03910 IF Q$="HIT" THEN 04330
@@ -1077,10 +1154,10 @@ package
 			03930 LET Z5=0
 			03940 INPUT Q$
 			*/
-			input(onThrowDirection);
+			input(onQueryThrowDirection);
 		}
 		
-		private function onThrowDirection(args:Array):void
+		private function onQueryThrowDirection(args:Array):void
 		{
 			/*
 			03950 IF Q$="B" THEN 04010
@@ -1141,11 +1218,11 @@ package
 			04480 PRINT "DO YOU WANT TO MAKE ANOTHER CHOICE";
 			04490 INPUT Q$
 			*/
-			input(onChooseAnotherWeapon);
+			input(onQueryChooseAnotherWeapon);
 			
 		}
 		
-		private function onChooseAnotherWeapon(args:Array):void
+		private function onQueryChooseAnotherWeapon(args:Array):void
 		{
 			
 			/*
@@ -1293,10 +1370,10 @@ package
 			05600 PRINT "AS A CLUB OR SIGHT";
 			05610 INPUT Q$
 			*/
-			input(onClubOrSight);
+			input(onQueryClubOrSight);
 		}
 		
-		private function onClubOrSight(args:Array):void
+		private function onQueryClubOrSight(args:Array):void
 		{
 			/*
 			05620 IF Q$="SIGHT" THEN 05650
@@ -1479,10 +1556,10 @@ package
 			07080 PRINT "WANT TO BUY MORE EQUIPMENT"
 			07090 INPUT Q$
 			*/
-			input(onBuyMoreEquipment)
+			input(onQueryBuyMoreEquipment)
 		}
 		
-		private function onBuyMoreEquipment(args:Array):void
+		private function onQueryBuyMoreEquipment(args:Array):void
 		{
 			
 			/*

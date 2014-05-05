@@ -75,6 +75,41 @@ package
 
 		}
 		
+		public function look(_state:DdGameState):String
+		{
+			var result:String = "";
+			var player_x:int = _state.G;
+			var player_y:int = _state.H;
+			var map_start_x:int = Math.max(0, player_x - 5); //MAGIC NUMBER
+			var map_end_x:int = Math.min(ROWS, player_x + 5); //MAGIC NUMBER
+			var map_start_y:int = Math.max(0, player_y - 5); //MAGIC NUMBER
+			var map_end_y:int = Math.min(COLUMNS, player_y + 5); //MAGIC NUMBER
+			
+			//WwDebug.instance.msg("map: " + __rows + ", " + __rows.length);
+			
+			for (var y:int=map_start_y; y < map_end_y; y++)
+			{
+				var row:Array = __rows[y];
+				//WwDebug.instance.msg(i + ": " + row);
+				
+				for (var x:int=map_start_x; x < map_end_x; x++)
+				{
+					if ((_state.G == x) && (_state.H == y))
+					{
+						result += __symbols[PLAYER_SYMBOL];
+					}
+					else
+					{
+						result += __symbols[row[x]];
+					}
+				}
+				
+				result += "\n";
+			}
+			
+			return result;
+		}
+		
 		public function map(_state:DdGameState):String
 		{
 			var result:String = "";

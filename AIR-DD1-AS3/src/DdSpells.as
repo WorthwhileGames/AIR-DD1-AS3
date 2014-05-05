@@ -38,7 +38,7 @@ package
 				_spell = new DdSpell("MAG. MISS. #1", 100); __spells.push(_spell);
 				_spell = new DdSpell("MAG. MISS. #3", 300); __spells.push(_spell);
 				_spell = new DdSpell("CURE LIGHT #2", 1000); __spells.push(_spell);
-				_spell = new DdSpell("KFIND ALL S.DOORSILL", 200); __spells.push(_spell);
+				_spell = new DdSpell("FIND ALL S.DOORSILL", 200); __spells.push(_spell);
 			}
 			else if (_type == WIZARD_TYPE)
 			{
