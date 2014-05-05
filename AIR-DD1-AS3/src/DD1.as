@@ -30,7 +30,7 @@ package
 		TRANSCRIBED and RESTRUCTURED BY DEJAY CLAYTON 2014
 	 */
 	
-	[SWF(backgroundColor="#FFFFFF", width="1024", height="768", frameRate="59")]
+	[SWF(backgroundColor="#FFFFFF", width="768", height="1024", frameRate="59")]
 	public class DD1 extends Sprite
 	{
 		private var __debug:WwDebug;

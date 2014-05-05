@@ -9,6 +9,7 @@ package
 	
 	import org.wwlib.dd1.UI_Main;
 	import org.wwlib.flash.WwAppState;
+	import org.wwlib.utils.WwDebug;
 	
 	//import starling.display.Sprite;
 	
@@ -73,6 +74,10 @@ package
 		private var __state:DdGameState;
 		private var __commands:Array;
 		
+		private var ttKeyboardMC:MovieClip;
+		private var ttKeyboard:DdKeyboard;
+		
+		private var __cheatCount:int;
 
 		public function DdAppStateMain()
 		{
@@ -85,6 +90,15 @@ package
 			if (__input.reading)
 			{
 				__input.onKeyDown(event.keyCode);
+			}
+		}
+		
+		public function onVirtualKeyEvent(key_code:int):void
+		{	
+			WwDebug.instance.msg("onVirtualKeyEvent:key_code: " + key_code);
+			if (__input.reading)
+			{
+				__input.onKeyDown(key_code);
 			}
 		}
 		
@@ -132,11 +146,15 @@ package
 			__UI_Main.gotoAndPlay("a");
 			
 			__txtTeletype = __UI_Main.txt_teletype;
-			__txtTeletype.y = 670;
+			__txtTeletype.y = 700; //MAGIC NUMBER
 			__txtTeletype.height = DdOutput.LINE_HEIGHT * 3;
 			//__txtPrompt = __UI_Main.txt_prompt;
 			//__txtInput = __UI_Main.txt_input;
 			//__btnEnter = __UI_Main.btn_enter;
+			
+			ttKeyboardMC = __UI_Main["keyboard"];
+			ttKeyboard = new DdKeyboard(ttKeyboardMC, onVirtualKeyEvent);
+			
 			
 			__input = new DdInput();
 			__output = new DdOutput(__txtTeletype);
@@ -224,7 +242,7 @@ package
 			
 			__commands = new Array("PASS", "MOVE", "OPEN DOOR", "SEARCH FOR TRAPS AND SECRET DOORS", "SWITCH WEAPON HN HAND", "FIGHT", "LOOK AROUND", "SAVE GAME", "USE MAGIC", "BUY MAGIC", "BUY H.P.");
 			
-			
+			__cheatCount = 0;
 			
 			DD1_Run();
 		}
@@ -813,6 +831,13 @@ package
 					nextFunction(queryCommands);
 					break;
 				}
+				case 13: //CHEAT: View full map
+				{
+					__cheatCount++;
+					print(__map.map(__state));
+					nextFunction(queryCommands);
+					break;
+				}
 					
 				default:
 				{
@@ -873,12 +898,6 @@ package
 				case "U":
 				{
 					__state.move(0,-1);
-					nextFunction(queryMoveDirection);
-					break;
-				}
-				case "M":
-				{
-					print(__map.map(__state));
 					nextFunction(queryMoveDirection);
 					break;
 				}
