@@ -16,9 +16,17 @@ package
 	
 	/**
 	 * ...
-	 * @author Andrew Rapo (andrew@worthwhilegames.org)
-	 * @license MIT
+	 * @author Richard Garriot
+	 * @author (AS3) Andrew Rapo
+	 * @copyright 1977-2014 Richard Garriott
+	 * 	REM DND-1
+	 REM 1500 lines
+	 REM (C)1977-2014 RICHARD GARRIOTT
+	 REM 79/02/28. 19.27.34.
+	 PROGRAM   DND1
+	 TRANSCRIBED and RESTRUCTURED BY DEJAY CLAYTON 2014
 	 */
+	
 	public class DdAppStateMain extends WwAppState
 	{
 		private var __UI_Main:UI_Main;
@@ -269,6 +277,8 @@ package
 			//00320 PRINT "     DUNGEONS AND DRAGONS #1"
 			//00330 PRINT
 			print("     DUNGEONS AND DRAGONS #1");
+			print();
+			print("I/O AND MOVEMENT TEST");
 			print();
 			
 			//00340 PRINT "DO YOU NEED INSTUCTIONS ";
@@ -727,7 +737,7 @@ package
 			print("1=MOVE  2=OPEN DOOR  3=SEARCH FOR TRAPS AND SECRET DOORS");
 			print("4=SWITCH WEAPON HN HAND  5=FIGHT");
 			print("6=LOOK AROUND  7=SAVE GAME  8=USE MAGIC  9=BUY MAGIC");
-			print("0=PASS  11=BUY H.P.");
+			print("0=PASS  11=BUY H.P.  13-FULL MAP (CHEAT)");
 			print("COMMAND=");
 			input(onCommand);
 						
