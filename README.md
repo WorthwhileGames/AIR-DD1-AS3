@@ -21,7 +21,7 @@ managing Input, Output, the Map, Monsters, Items, Inventory, Spells, and a virtu
 
 The opportunity to work with original code by Lord British is too good to pass up.  My days as a programmer
 began in 1980 when I was 12.  My first language was Applesoft BASIC.  After proving my dedication to coding
-on a Radio Shack Pocket Computer 1, my dad got us Apple IIe.  I made some elaborate programs, but now that
+on a Radio Shack Pocket Computer 1, my dad got us an Apple IIe.  I made some elaborate programs, but now that
 I see what Richard Garriott produced (vi paper tape rolls!) I have a new appreciation for him.  
 BTW: My boxed copy of Exodus Ultima IV is still in great shape and includes the cloth map.  And I still have
 the Mockingboard.
