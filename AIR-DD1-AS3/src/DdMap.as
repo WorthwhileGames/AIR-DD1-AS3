@@ -75,11 +75,9 @@ package
 
 		}
 		
-		public function look(_state:DdGameState):String
+		public function look(player_x:int, player_y:int):String
 		{
 			var result:String = "";
-			var player_x:int = _state.G;
-			var player_y:int = _state.H;
 			var map_start_x:int = Math.max(0, player_x - 5); //MAGIC NUMBER
 			var map_end_x:int = Math.min(ROWS, player_x + 5); //MAGIC NUMBER
 			var map_start_y:int = Math.max(0, player_y - 5); //MAGIC NUMBER
@@ -94,7 +92,7 @@ package
 				
 				for (var x:int=map_start_x; x < map_end_x; x++)
 				{
-					if ((_state.G == x) && (_state.H == y))
+					if ((player_x == x) && (player_y == y))
 					{
 						result += __symbols[PLAYER_SYMBOL];
 					}
@@ -110,7 +108,7 @@ package
 			return result;
 		}
 		
-		public function map(_state:DdGameState):String
+		public function map(player_x:int, player_y:int):String
 		{
 			var result:String = "";
 			
@@ -123,7 +121,7 @@ package
 				 
 				for (var j:int=0; j<COLUMNS; j++)
 				{
-					if ((_state.G == j) && (_state.H == i))
+					if ((player_x == j) && (player_y == i))
 					{
 						result += __symbols[PLAYER_SYMBOL];
 					}
@@ -156,5 +154,20 @@ package
 		01450 NEXT N
 		01460 NEXT M
 		*/
+		
+		public function getTileType(x:int, y:int):int
+		{
+			var _row:Array = __rows[y];
+			
+			return _row[x];
+		}
+		
+		public function clearTile(x:int, y:int):void
+		{
+			var _row:Array = __rows[y];
+			
+			_row[x] = 0;
+			
+		}
 	}
 }

@@ -29,6 +29,8 @@ package
 	
 	public class DdAppStateMain extends WwAppState
 	{
+		public static const POISON_ROLL_THRESHOLD:Number = 0.2;
+		
 		private var __UI_Main:UI_Main;
 		
 		private var __txtTeletype:TextField;
@@ -232,8 +234,8 @@ package
 			__X6 = new Array(100);  //wizard spell costs
 			__X2 = new Array(100);  //clerical spell slots
 			__X4 = new Array(100);  //wizard spell slots
-			//__G = Math.random()*24 +2; //INT(RND(0)*24+2;
-			//__H = Math.random()*24 +2; //INT(RND(0)*24+2);
+			//__G = Math.random()*24 +2; //INT(RND(0)*24+2; //player x
+			//__H = Math.random()*24 +2; //INT(RND(0)*24+2); //player y
 			
 			__J6_reset = 0;
 			//__DUNGEON = 0;
@@ -245,6 +247,7 @@ package
 			__player = new DdPlayer();
 			__map = new DdMap();
 			__state = new DdGameState();
+			__state.map = __map;
 			
 			__inventoryCount = 0;
 			
@@ -807,7 +810,7 @@ package
 				}
 				case 6: //LOOK AROUND
 				{
-					print(__map.look(__state));
+					print(__state.getLookMapAsString());
 					nextFunction(queryCommands);
 					break;
 				}
@@ -844,7 +847,14 @@ package
 				case 13: //CHEAT: View full map
 				{
 					__cheatCount++;
-					print(__map.map(__state));
+					print(__state.getFullMapAsString());
+					nextFunction(queryCommands);
+					break;
+				}
+				case 14: //CHEAT: Stats
+				{
+					__cheatCount++;
+					print(__player.statsList()); //DEBUG
 					nextFunction(queryCommands);
 					break;
 				}
@@ -889,25 +899,39 @@ package
 			{
 				case "D":
 				{
-					__state.move(0,1);
+					move(0,1);
 					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "R":
 				{
-					__state.move(1,0);
+					move(1,0);
 					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "L":
 				{
-					__state.move(-1,0);
+					move(-1,0);
 					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "U":
 				{
-					__state.move(0,-1);
+					move(0,-1);
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "M":
+				{
+					__cheatCount++;
+					print(__state.getFullMapAsString());
+					nextFunction(queryMoveDirection);
+					break;
+				}
+				case "S":
+				{
+					__cheatCount++;
+					print(__player.statsList()); //DEBUG
 					nextFunction(queryMoveDirection);
 					break;
 				}
@@ -917,7 +941,114 @@ package
 					nextFunction(queryCommands);
 					break;
 				}
+			}			
+		}
+		
+		public function move(x:int, y:int):void
+		{
+			/*
+			02250 LOGIC
+			get movement
+			check to see if tile is occupied
+			0 free square, move there
+			1 wall RND(0)*12+1>9 chance of 1 HP damage
+			2 trap RND(0)*3>2 chance of 1 HP damage
+			check for rope and spikes
+			decrement rope and spikes if you have them
+			if spikes check for rope  
+			if no spikes, dead
+			if both, you're out
+			3 secret door
+			4 NOP
+			5 monster shoves you back
+			roll a 2 and no damage IF INT(RND(0)*2)+1=2
+			or HP -6
+			...
+			6 gold found INT(RND(0)*500+10) pieces
+			print # GOLD
+			then do poison check
+			7 potion STR + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
+			print HP
+			finish move
+			8 ption CON + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
+			print HP
+			finish move
+			
+			*/
+			var pendingTileType:int = __map.getTileType(__state.G + x, __state.H + y);
+			
+			__debug.msg("  pendingTileType: " + pendingTileType);
+			
+			
+			switch(pendingTileType)
+			{
+				case 0: //OPEN
+				{
+					__state.G += x;
+					__state.H += y;
+					print("DONE");
+					break;
+				}
+				case 1: //WALL
+				{
+					print("WALL");
+					break;
+				}
+				case 2: //TRAP
+				{
+					print("TRAP");
+					break;
+				}
+				case 3: //SECRET DOOR
+				{
+					print("SECRET DOOR");
+					break;
+				}
+				case 4: //DOOR?
+				{
+					print("DOOR?");
+					break;
+				}
+				case 5: //MONSTER
+				{
+					print("MONSTER!");
+					break;
+				}
+				case 6: //GOLD
+				{
+					print("GOLD!");
+					break;
+				}
+				case 7: //POTION STR +1
+				{
+					print("POTION STR +1"); //DEBUG
+					__player.STR += 1;
+					__state.G += x;
+					__state.H += y;
+					poisonCheck();
+					print("DONE");
+					break;
+				}
+				case 8: //POTION CON +1
+				{
+					print("POTION CON +1"); //DEBUG
+					__player.CON += 1;
+					__state.G += x;
+					__state.H += y;
+					poisonCheck();
+					print("DONE");
+					break;
+				}
+					
+				default:
+				{
+					break;
+				}
 			}
+			
+			//GO TO 07000
+			nextFunction(checkHealth);
+			
 			
 			/*
 			02250 REM
@@ -1046,7 +1177,28 @@ package
 			03110 LET C(0)=C(0)-6
 			03120 GO TO 07000
 			*/
+		}
+		
+		public function poisonCheck():void
+		{
+			//POISON CHECK
+			//02418 D(G+S,H+T)=0
+			//02419 IF RND(0)>.2 THEN 02430
+			//02420 PRINT "       POISON      "
+			//02421 LET C(0)=C(0)-INT(RND(0)*4+1)
+			//02422 PRINT "HP= ";C(0)
+			//02423 GO TO 02430
 			
+			__map.clearTile(__state.G, __state.H);
+			var poison_roll:Number = Math.random();
+			__debug.msg(" poison_roll: " + poison_roll);
+			if (poison_roll <= POISON_ROLL_THRESHOLD)
+			{
+				print("       POISON      ");
+				var con_deduction:int = (Math.random()*4)+1;
+				__debug.msg("  con_deduction: " + con_deduction);
+				__player.CON -= con_deduction;
+			}
 		}
 		
 		//MOVE
@@ -1279,7 +1431,7 @@ package
 			
 			
 			*/		
-			DD1_08410(); //04690 GOSUB 08410
+			checkMonsterRange(); //04690 GOSUB 08410
 			
 			/*
 			
@@ -1325,7 +1477,7 @@ package
 			
 			*/
 			
-			DD1_08410(); //05090 GOSUB 08410
+			checkMonsterRange(); //05090 GOSUB 08410
 			
 			/*
 			
@@ -1350,7 +1502,7 @@ package
 			
 			*/
 			
-			DD1_08410(); //05280 GOSUB 08410
+			checkMonsterRange(); //05280 GOSUB 08410
 			
 			/*
 			
@@ -1384,7 +1536,7 @@ package
 			05490 GO TO 01590
 			*/
 			
-			DD1_08410(); //05500 GOSUB 08410
+			checkMonsterRange(); //05500 GOSUB 08410
 
 			/*
 			05510 IF J=5 THEN 05760
@@ -1574,7 +1726,7 @@ package
 		{
 			/*
 			/*
-			07000 IF K1=-1 THEN 08290
+			07000 IF K1=-1 THEN 08290 //If monster flag is < 0, current monsters is dead
 			07010 IF C(0)<2 THEN 08160
 			07020 IF K>0 THEN 07160		//CALL DD1_08410();
 			07030 IF G<>1 THEN 07110
@@ -1585,7 +1737,39 @@ package
 			07080 PRINT "WANT TO BUY MORE EQUIPMENT"
 			07090 INPUT Q$
 			*/
-			input(onQueryBuyMoreEquipment)
+			
+			if (!__state.monsterAlive)
+			{
+				nextFunction(monsterKilled);
+			}
+			else if (__player.HP < 2)
+			{
+				nextFunction(checkHealth2);
+			}
+			else if (__state.K > 0) //monster type
+			{
+				nextFunction(checkMonsterRange);
+			}
+			else if ((__state.G != 1) && (__state.H != 12)) //MAGIC NUMBER
+			{
+				nextFunction(onQueryBuyMoreEquipment);
+			}
+			else
+			{
+				print("SO YOU HAVE RETURNED");
+				if (__player.GOLD >= 100)
+				{
+					__player.GOLD -= 100;
+					print("WANT TO BUY MORE EQUIPMENT");
+					input(onQueryBuyMoreEquipment);
+				}
+				else
+				{
+					nextFunction(onQueryBuyMoreEquipment);
+				}
+			}
+			
+			
 		}
 		
 		private function onQueryBuyMoreEquipment(args:Array):void
@@ -1601,7 +1785,7 @@ package
 			
 			*/
 			
-			DD1_08410(); //07160 GOSUB 08410
+			checkMonsterRange(); //07160 GOSUB 08410
 		}
 		
 		private function moveMonster():void
@@ -1645,7 +1829,7 @@ package
 			
 			*/
 			
-			DD1_08410(); //07480 GOSUB 08410
+			checkMonsterRange(); //07480 GOSUB 08410
 			
 			/*
 			
@@ -1778,7 +1962,7 @@ package
 			*/
 			
 			// SUBROUTINE #2 
-			DD1_08410();
+			checkMonsterRange();
 		}
 		
 		private function useSpells():void
@@ -2197,7 +2381,7 @@ REM VERSION 1.0  2014-04-17: INITIAL VERSION
 		}
 		*/
 		
-		public function DD1_08410():void
+		public function checkMonsterRange():void
 		{
 			/*
 			08410 REM RANGE AND HIT CHECK"

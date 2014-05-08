@@ -100,7 +100,12 @@ package
 		{
 			return __CON;
 		}
-
+		
+		public function set CON(value:int):void
+		{
+			__CON = value;
+		}
+		
 		public function get CHAR():int
 		{
 			return __CHAR;
@@ -150,7 +155,6 @@ package
 		{
 			return __wizardSpells;
 		}
-
 
 	}
 }

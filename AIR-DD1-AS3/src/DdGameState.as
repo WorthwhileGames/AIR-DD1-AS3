@@ -1,5 +1,6 @@
 package
 {
+	import org.wwlib.utils.WwDebug;
 	
 	/**
 	 * ...
@@ -8,29 +9,34 @@ package
 	 */
 	public class DdGameState
 	{
+		
+		private var __debug:WwDebug;
+		
 		private var __DUNGEON:int; //DUNGEON
 		private var __X:int; //NUMBER OF ITEMS
-		private var __J:int;
-		private var __K:int;
-		private var __G:int;
-		private var __H:int;
+		private var __J:int; //equipped item
+		private var __K:int; //current monster type
+		private var __G:int; //player x
+		private var __H:int; //player y
+		private var __map:DdMap;
+		private var __monsterAlive:Boolean; //K1
 		
 		
 		public function DdGameState()
 		{
+			__debug = WwDebug.instance;
+			
 			__DUNGEON = 0;
 			__X = 0;
 			__J = 0;
 			__K = 0;
 			__G = Math.random()*24 +2; //INT(RND(0)*24+2;
 			__H = Math.random()*24 +2; //INT(RND(0)*24+2);
+			
+			__monsterAlive = true;
 		}
 		
-		public function move(x:int, y:int):void
-		{
-			__G += x;
-			__H += y;
-		}
+
 		
 		/*
 		01770 REM READ OUT OLD GAME
@@ -78,35 +84,15 @@ package
 		02160 GO TO 01510
 		*/
 		
-		/*
-		02250 LOGIC
-		get movement
-		check to see if tile is occupied
-		0 free square, move there
-		1 wall RND(0)*12+1>9 chance of 1 HP damage
-		2 trap RND(0)*3>2 chance of 1 HP damage
-		  check for rope and spikes
-		  decrement rope and spikes if you have them
-		  if spikes check for rope  
-		  if no spikes, dead
-		  if both, you're out
-		3 secret door
-		4 NOP
-		5 monster shoves you back
-		  roll a 2 and no damage IF INT(RND(0)*2)+1=2
-		  or HP -6
-		  ...
-		6 gold found INT(RND(0)*500+10) pieces
-		  print # GOLD
-		  then do poison check
-		7 potion STR + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
-		  print HP
-		  finish move
-		8 ption CON + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
-		  print HP
-		  finish move
+		public function getFullMapAsString():String
+		{
+			return map.map(__G, __H);
+		}
 		
-		*/
+		public function getLookMapAsString():String
+		{
+			return map.look(__G, __H);
+		}
 
 		public function get DUNGEON():int
 		{
@@ -166,6 +152,26 @@ package
 		public function set K(value:int):void
 		{
 			__K = value;
+		}
+
+		public function get map():DdMap
+		{
+			return __map;
+		}
+
+		public function set map(value:DdMap):void
+		{
+			__map = value;
+		}
+
+		public function get monsterAlive():Boolean
+		{
+			return __monsterAlive;
+		}
+
+		public function set monsterAlive(value:Boolean):void
+		{
+			__monsterAlive = value;
 		}
 
 
