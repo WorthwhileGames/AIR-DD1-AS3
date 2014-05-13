@@ -8,14 +8,16 @@ package
 	 */
 	public class DdItem
 	{
+		private var __id:int;
 		private var __name:String;
 		private var __price:int;
 		private var __range:Number;
 		private var __hitMultiplier:Number;
 		private var __criticalHitMultiplier:Number;
 		
-		public function DdItem(name:String, price:int, range:Number, hit_multiplier:Number, critical_hit_multiplier:Number)
+		public function DdItem(id:int, name:String, price:int, range:Number, hit_multiplier:Number, critical_hit_multiplier:Number)
 		{
+			__id = id;
 			__name = name;
 			__price = price;
 			__range = range;
@@ -38,6 +40,9 @@ package
 			return __range;
 		}
 
-
+		public function get id():int
+		{
+			return __id;
+		}
 	}
 }

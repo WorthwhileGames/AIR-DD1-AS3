@@ -1,5 +1,7 @@
 package
 {
+	import flash.geom.Point;
+	
 	import org.wwlib.utils.WwDebug;
 	
 	/**
@@ -12,6 +14,9 @@ package
 		private static var ROWS:int = 25;
 		private static var COLUMNS:int = 25;
 		private static var PLAYER_SYMBOL:int = 9;
+		private static var MONSTER_SYMBOL:int = 5;
+		
+		public static var TILE_ID_MONSTER:int = 5;
 		
 		private var __rows:Array;
 		private var __symbols:Array = [" ","*","2","3","4","5","6","7","8","X","0"];
@@ -63,8 +68,11 @@ package
 				
 				for (var j:int=0; j<COLUMNS; j++)
 				{
-					if (Math.random() >= 0.97) row[j] = 7;  //DEBUG 0.97
-					if (Math.random() >= 0.97) row[j] = 8;  //DEBUG 0.97
+					if (row[j] == 0)
+					{
+						if (DdRoll.R(1) >= 0.97) row[j] = 7;  //DEBUG 0.97
+						if (DdRoll.R(1) >= 0.97) row[j] = 8;  //DEBUG 0.97
+					}
 				}
 			}
 			
@@ -108,7 +116,7 @@ package
 			return result;
 		}
 		
-		public function map(player_x:int, player_y:int):String
+		public function map(player:DdPlayer, monster:DdMonster):String
 		{
 			var result:String = "";
 			
@@ -121,9 +129,13 @@ package
 				 
 				for (var j:int=0; j<COLUMNS; j++)
 				{
-					if ((player_x == j) && (player_y == i))
+					if ((player.x == j) && (player.y == i))
 					{
 						result += __symbols[PLAYER_SYMBOL];
+					}
+					else if ((monster.x == j) && (monster.y == i))
+					{
+						result += __symbols[MONSTER_SYMBOL];
 					}
 					else
 					{
@@ -155,11 +167,40 @@ package
 		01460 NEXT M
 		*/
 		
-		public function getTileType(x:int, y:int):int
+		public function getRandomFreeTile():Point
+		{
+			var free_tile_found:Boolean = false;
+			var _x:int;
+			var _y:int;
+			
+			while (!free_tile_found)
+			{
+				_x = DdRoll.D(24) +2; //INT(RND(0)*24+2);
+				_y = DdRoll.D(24) +2; //INT(RND(0)*24+2);
+				
+				if (getTileType(_x, _y, null) == 0)
+				{
+					free_tile_found = true;
+				}
+			}
+			
+			return new Point(_x, _y);
+		}
+		
+		public function getTileType(x:int, y:int, _monster:DdMonster=null):int
 		{
 			var _row:Array = __rows[y];
+			var _type:int;
 			
-			return _row[x];
+			if (_monster && (x == _monster.x) && (y == _monster.y))
+			{
+				_type = TILE_ID_MONSTER;
+			}
+			else
+			{
+				_type = _row[x];
+			}
+			return _type;
 		}
 		
 		public function clearTile(x:int, y:int):void
@@ -168,6 +209,18 @@ package
 			
 			_row[x] = 0;
 			
+		}
+		
+		public function isOnMap(x:int, y:int):Boolean
+		{
+			if ((x > 0) && (x < ROWS) && (y > 0) && (y < ROWS))
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package
 {
+	import flash.geom.Point;
 	
 	/**
 	 * ...
@@ -24,6 +25,12 @@ package
 		
 		private var __inventory:DdInventory;
 		
+		private var __attackEffectiveness:Number;
+		private var __armorClass:Number;
+		
+		private var __x:int;
+		private var __y:int;
+		
 		public function DdPlayer()
 		{
 			rollStats();
@@ -34,15 +41,16 @@ package
 		
 		public function rollStats():void{
 			
-			__STR = rollThreeSixSidedDice();
-			__DEX = rollThreeSixSidedDice();
-			__CON = rollThreeSixSidedDice();
-			__CHAR = rollThreeSixSidedDice();
-			__WIS = rollThreeSixSidedDice();
-			__INT = rollThreeSixSidedDice();
-			__GOLD = rollThreeSixSidedDice() * 15;
+			__STR = DdRoll.D6x3();
+			__DEX = DdRoll.D6x3();
+			__CON = DdRoll.D6x3();
+			__CHAR = DdRoll.D6x3();
+			__WIS = DdRoll.D6x3();
+			__INT = DdRoll.D6x3();
+			__GOLD = DdRoll.D6x3() * 15;
 		}
 		
+		/*
 		private function rollThreeSixSidedDice():int
 		{
 			var result:int;
@@ -54,6 +62,7 @@ package
 			
 			return result;
 		}
+		*/
 		
 		public function statsList():String
 		{
@@ -155,6 +164,47 @@ package
 		{
 			return __wizardSpells;
 		}
+
+		public function get attackEffectiveness():Number
+		{
+			return __attackEffectiveness;
+		}
+
+		public function set attackEffectiveness(value:Number):void
+		{
+			__attackEffectiveness = value;
+		}
+
+		public function get armorClass():Number
+		{
+			return __armorClass;
+		}
+
+		public function set armorClass(value:Number):void
+		{
+			__armorClass = value;
+		}
+
+		public function get x():int
+		{
+			return __x;
+		}
+
+		public function set x(value:int):void
+		{
+			__x = value;
+		}
+
+		public function get y():int
+		{
+			return __y;
+		}
+
+		public function set y(value:int):void
+		{
+			__y = value;
+		}
+
 
 	}
 }

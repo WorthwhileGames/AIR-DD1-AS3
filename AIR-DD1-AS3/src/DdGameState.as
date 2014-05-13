@@ -16,10 +16,11 @@ package
 		private var __X:int; //NUMBER OF ITEMS
 		private var __J:int; //equipped item
 		private var __K:int; //current monster type
-		private var __G:int; //player x
-		private var __H:int; //player y
+		//private var __G:int; //G, player row, y
+		//private var __H:int; //H, player col, x
 		private var __map:DdMap;
 		private var __monsterAlive:Boolean; //K1
+		private var __difficulty:int; //J4
 		
 		
 		public function DdGameState()
@@ -30,8 +31,8 @@ package
 			__X = 0;
 			__J = 0;
 			__K = 0;
-			__G = Math.random()*24 +2; //INT(RND(0)*24+2;
-			__H = Math.random()*24 +2; //INT(RND(0)*24+2);
+			//__G = Math.random()*24 +2; //INT(RND(0)*24+2);
+			//__H = Math.random()*24 +2; //INT(RND(0)*24+2;
 			
 			__monsterAlive = true;
 		}
@@ -84,15 +85,15 @@ package
 		02160 GO TO 01510
 		*/
 		
-		public function getFullMapAsString():String
-		{
-			return map.map(__G, __H);
-		}
+		//public function getFullMapAsString():String
+		//{
+		//	return map.map(__H, __G);
+		//}
 		
-		public function getLookMapAsString():String
-		{
-			return map.look(__G, __H);
-		}
+		//public function getLookMapAsString():String
+		//{
+		//	return map.look(__H, __G);
+		//}
 
 		public function get DUNGEON():int
 		{
@@ -123,17 +124,7 @@ package
 		{
 			__J = value;
 		}
-
-		public function get G():int
-		{
-			return __G;
-		}
-
-		public function set G(value:int):void
-		{
-			__G = value;
-		}
-
+/*
 		public function get H():int
 		{
 			return __H;
@@ -144,6 +135,16 @@ package
 			__H = value;
 		}
 
+		public function get G():int
+		{
+			return __G;
+		}
+
+		public function set G(value:int):void
+		{
+			__G = value;
+		}
+*/
 		public function get K():int
 		{
 			return __K;
@@ -172,6 +173,16 @@ package
 		public function set monsterAlive(value:Boolean):void
 		{
 			__monsterAlive = value;
+		}
+
+		public function get difficulty():int
+		{
+			return __difficulty;
+		}
+
+		public function set difficulty(value:int):void
+		{
+			__difficulty = value;
 		}
 
 

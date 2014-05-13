@@ -89,7 +89,7 @@ package
 				if (new_msg == "\n")
 				{
 					__outputArray = ["\n"];
-					WwDebug.instance.msg(" printing empty line: " + __outputArray);
+					//WwDebug.instance.msg(" printing empty line: " + __outputArray);
 				}
 				else
 				{
