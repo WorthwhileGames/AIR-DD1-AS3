@@ -1,10 +1,5 @@
 package
 {
-	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.events.KeyboardEvent;
-	
-	import org.wwlib.flash.WwAudioManager;
 	import org.wwlib.utils.WwDebug;
 	
 	/**

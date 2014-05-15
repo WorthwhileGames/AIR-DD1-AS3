@@ -207,7 +207,7 @@ package org.wwlib.utils
 				this.assetScaleFactor = 1.0;
 			}
 			
-			this.debuggerX = 768 + (this.stageX / this.assetScaleFactor * 1) + 1; // +1 to eliminated hairline reveal on right edge of screen
+			this.debuggerX = 1024 + (this.stageX / this.assetScaleFactor * 1) + 1; // +1 to eliminated hairline reveal on right edge of screen
 			this.debuggerY = 10 + (this.stageY / this.assetScaleFactor * -1);
 		}
 	}

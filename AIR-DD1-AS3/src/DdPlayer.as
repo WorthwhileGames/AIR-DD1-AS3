@@ -31,6 +31,8 @@ package
 		private var __x:int;
 		private var __y:int;
 		
+		private var __classification:String;
+		
 		public function DdPlayer()
 		{
 			rollStats();
@@ -68,6 +70,7 @@ package
 		{
 			var _list:String = "PLAYER: " + name + "\n";
 			
+			_list += "CLASS: " + __classification + "\n";
 			_list += "STR=" + __STR + "\n";
 			_list += "DEX=" + __DEX + "\n";
 			_list += "CON=" + __CON + "\n";
@@ -203,6 +206,47 @@ package
 		public function set y(value:int):void
 		{
 			__y = value;
+		}
+
+		public function get classification():String
+		{
+			return __classification;
+		}
+
+		public function set classification(value:String):void
+		{
+			__classification = value;
+			
+			switch(__classification)
+			{
+				case "FIGHTER":
+				{
+					//00770 LET C(0)=INT(RND(0)*8+1)
+					//00780 GO TO 00670
+					HP = Math.random()*8+1;
+					
+					break;
+				}
+				case "CLERIC":
+				{
+					//00790 LET C(0)=INT(RND(0)*4+1)
+					//00800 GO TO 00670
+					HP  = Math.random()*4+1;
+					break;
+				}
+				case "WIZARD":
+				{
+					//00810 LET C(0)=INT(RND(0)*6+1)
+					//00820 GO TO 00670
+					HP  = Math.random()*6+1;
+					break;
+				}
+					
+				default:
+				{
+					break;
+				}
+			}
 		}
 
 

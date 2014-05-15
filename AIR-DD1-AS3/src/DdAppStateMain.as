@@ -3,10 +3,13 @@ package
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.AccelerometerEvent;
+	import flash.events.Event;
 	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.text.TextField;
 	import flash.text.engine.BreakOpportunity;
+	import flash.utils.describeType;
 	
 	import org.wwlib.dd1.UI_Main;
 	import org.wwlib.flash.WwAppState;
@@ -35,6 +38,8 @@ package
 		private var __UI_Main:UI_Main;
 		
 		private var __txtTeletype:TextField;
+		private var __txtMap:TextField;
+		private var __txtStats:TextField;
 		//private var __txtPrompt:TextField;
 		//private var __txtInput:TextField;
 		//private var __btnEnter:MovieClip;
@@ -69,7 +74,7 @@ package
 		private var __N$:String;
 		
 		//private var __DUNGEON:int;
-		private var __class:String;
+		//private var __class:String;
 		private var __monsterDB:DdMonsters;
 		private var __monster:DdMonster;
 		//private var __inventoryCount:int;
@@ -79,6 +84,7 @@ package
 		
 		private var __player:DdPlayer;
 		
+		private var __pendingAction:DdPendingAction;
 		private var __pendingFunction:Function;
 		private var __pendingArgs:Array;
 		private var __pendingCallback:Function;
@@ -90,6 +96,7 @@ package
 		private var ttKeyboard:DdKeyboard;
 		
 		private var __cheatCount:int;
+		private var __showHUD:Boolean;
 		
 
 		public function DdAppStateMain()
@@ -128,31 +135,21 @@ package
 			}
 			__output.output();
 			
-			if (__pendingFunction && !__output.printing)
+			if (__pendingAction && !__output.printing)
 			{
-				__debug.msg("  __pendingFunction && !__output.printing");
-				if (__pendingArgs)
+				var _action:DdPendingAction = __pendingAction;
+				__pendingAction = null;
+				
+				if (_action.execute())
 				{
-					__pendingFunction(__pendingArgs);
-				}
-				else if (__pendingCallback)
-				{
-					__pendingFunction(__pendingCallback);
+					//OK
 				}
 				else
 				{
-					__pendingFunction();
+					__pendingAction = _action;
 				}
 				
-				__pendingFunction = null;
-				__pendingCallback = null;
-				__pendingArgs = null;
 			}
-			else if ((__pendingFunction && __output.printing))
-			{
-				__debug.msg("  __pendingFunction && __output.printing");
-			}
-				
 		}
 		
 		public override function init(_app:flash.display.Sprite, _stage:MovieClip):void
@@ -165,8 +162,15 @@ package
 			__UI_Main.gotoAndPlay("a");
 			
 			__txtTeletype = __UI_Main.txt_teletype;
-			__txtTeletype.y = 700; //MAGIC NUMBER
+			__txtTeletype.y = 475; //MAGIC NUMBER
 			__txtTeletype.height = DdOutput.LINE_HEIGHT * 3;
+			
+			__txtMap = __UI_Main.txt_map;
+			__txtStats = __UI_Main.txt_stats;
+			__showHUD = false;
+			
+			__txtMap.addEventListener(MouseEvent.MOUSE_DOWN, onMapClick);
+			
 			//__txtPrompt = __UI_Main.txt_prompt;
 			//__txtInput = __UI_Main.txt_input;
 			//__btnEnter = __UI_Main.btn_enter;
@@ -181,6 +185,8 @@ package
 			__pendingFunction = null;
 			__pendingArgs = null;
 			__pendingCallback = null;
+			
+			__pendingAction = null;
 						
 			/*
 			FILE #N,"SPEC"  Open file "SPEC" as file N
@@ -248,7 +254,7 @@ package
 			
 			__J6_reset = 0;
 			//__DUNGEON = 0;
-			__class = "NONE";
+			//__class = "NONE";
 			
 			__itemTypes = new DdItems();
 			__spellTypesCleric = new DdSpells(DdSpells.CLERIC_TYPE);
@@ -265,14 +271,48 @@ package
 			
 			__cheatCount = 0;
 			
+			__monsterDB = new DdMonsters();
+			__monster = __monsterDB.getMonsterByID(0);  //no monster
+			
 			DD1_Run();
+			
+			//DEBUG
+			/*
+			__player.name = "SHAVS";
+			__player.rollStats();
+			__player.classification = "FIGHTER";
+			__player.inventory.addItem(__itemTypes.item(2));
+			__player.inventory.addItem(__itemTypes.item(10));
+			__player.inventory.addItem(__itemTypes.item(11));
+			__player.inventory.addItem(__itemTypes.item(12));
+			__player.inventory.addItem(__itemTypes.item(13));
+			__player.inventory.addItem(__itemTypes.item(14));
+			__player.inventory.addItem(__itemTypes.item(15));
+			
+			nextAction(setupDungeon, "SETUP");
+			*/
 		}
 		
-		private function nextFunction(func:Function, args:Array=null, callback:Function=null):void
+		private function onMapClick(e:Event):void
 		{
+			if (__map.generated)
+			{
+				__txtMap.removeEventListener(MouseEvent.MOUSE_DOWN, onMapClick);
+				__showHUD = true;
+				showHUD();
+			}
+		}
+		
+		private function nextAction(func:Function, label:String="na"):void //, args:Array=null, callback:Function=null, label:String=""):void
+		{
+			__pendingAction = new DdPendingAction(label, func, 1);
+			
+			/*
+			__debug.msg("nextFunction: " + label + ": " + func);
 			__pendingFunction = func;
 			__pendingArgs = args;
 			__pendingCallback = callback;
+			*/
 		}
 			
 		private function input(input_handler:Function):void
@@ -283,6 +323,7 @@ package
 		private function print(msg:String="", carriage_return:Boolean=true):void
 		{
 			__output.print(msg, carriage_return);
+			__debug.msg(msg, "3");
 		}
 		
 		private function DD1_Run():void
@@ -302,7 +343,7 @@ package
 		
 		private function onQueryInstructions(args:Array):void
 		{
-			__debug.msg(" onQueryInstructions: " + args);
+			//__debug.msg(" onQueryInstructions: " + args);
 			__Q$ = args[0];
 			//00360 IF Q$="YES" THEN 01730
 			if (__Q$ == "YES")
@@ -313,7 +354,7 @@ package
 			//BUG 720 is not the right place to go
 			else if (__Q$ == "Y")
 			{
-				nextFunction(whoSaidYouCouldPlay);
+				nextAction(whoSaidYouCouldPlay, "whoSaidYouCouldPlay");
 			}
 			else
 			{
@@ -336,7 +377,7 @@ package
 		
 		private function onQueryOldOrNewGame(args:Array):void
 		{
-			__debug.msg(" onQueryOldOrNewGame: " + args);
+			//__debug.msg(" onQueryOldOrNewGame: " + args);
 			__Q$ = args[0];
 			//00400 IF Q$="OLD" THEN 01770
 			if (__Q$ == "OLD")
@@ -366,7 +407,7 @@ package
 		private function onQueryContinues(args:Array):void
 		{
 			__J6_reset = int(args[0]);
-			__debug.msg(" onQueryContinues: " + __J6_reset);
+			//__debug.msg(" onQueryContinues: " + __J6_reset);
 			//00430 REM ROLLING CHARICTERISTICS
 			//00440 PRINT "PLAYERS NME ";
 			//00450 INPUT N$
@@ -377,7 +418,7 @@ package
 		private function onQueryPlayersName(args:Array):void
 		{
 			var _input:String = args[0];
-			__debug.msg(" onQueryPlayersName: " + args + ", " + _input);
+			//__debug.msg(" onQueryPlayersName: " + args + ", " + _input);
 			
 			//00460 IF N$<>"SHAVS" THEN 01730
 			if (_input == "SHAVS")
@@ -400,18 +441,18 @@ package
 				//00570 NEXT M
 				
 				//ROLL STATS
-				print();
-				print(__player.statsList());
+				//print();
+				//print(__player.statsList());
 				//00580 PRINT
 				print("");
 			}
 			else
 			{
-				nextFunction(whoSaidYouCouldPlay);
+				nextAction(whoSaidYouCouldPlay, "whoSaidYouCouldPlay");
 				return;
 			}
 			
-			nextFunction(chooseClassification);
+			nextAction(chooseClassification, "chooseClassification");
 		}
 		
 		private function chooseClassification():void
@@ -429,7 +470,7 @@ package
 		
 		private function onQueryClassification(args:Array):void
 		{
-			__class = args[0];
+			var _class:String = args[0];
 			/*
 			00625 IF C$(0)<>"NONE" THEN 0630
 			00626 FOR M7=0 TO 7
@@ -438,11 +479,12 @@ package
 			00629 GO TO 00470
 			*/
 			
-			if (__class == "NONE")
+
+			if (_class == "NONE")
 			{
 				__player.rollStats();
 				print(__player.statsList());
-				nextFunction(chooseClassification);
+				nextAction(chooseClassification, "chooseClassification");
 			}
 			else
 			{
@@ -451,33 +493,27 @@ package
 				//00650 IF C$(0)="WIZARD" THEN 00790
 				//00660 GO TO 00620
 				
-				//ASET HIT POINTS
-				switch(__class)
+				switch(_class)
 				{
 					case "FIGHTER":
 					{
-						//00770 LET C(0)=INT(RND(0)*8+1)
-						//00780 GO TO 00670
-						__player.HP = Math.random()*8+1;
+						__player.classification = "FIGHTER";
 						break;
 					}
 					case "CLERIC":
 					{
-						//00790 LET C(0)=INT(RND(0)*4+1)
-						//00800 GO TO 00670
-						__player.HP  = Math.random()*4+1;
+						__player.classification = "CLERIC";
 						break;
 					}
 					case "WIZARD":
 					{
-						//00810 LET C(0)=INT(RND(0)*6+1)
-						//00820 GO TO 00670
-						__player.HP  = Math.random()*6+1;
+						__player.classification = "WIZARD";
 						break;
 					}
 						
 					default:
 					{
+						__player.classification = "FIGHTER";
 						break;
 					}
 				}
@@ -515,11 +551,11 @@ package
 			
 					
 			//00750 GOSUB 01150 //SET UP MONSTER TYPES
-			__monsterDB = new DdMonsters();
-			__monster = __monsterDB.getMonsterByID(0);  //no monster
+			//__monsterDB = new DdMonsters();
+			//__monster = __monsterDB.getMonsterByID(0);  //no monster
 			
 			//00760 GO TO 00830
-			nextFunction(Dd0830);
+			nextAction(Dd0830, "Dd0830 BUY");
 		}
 			
 			
@@ -566,7 +602,7 @@ package
 					print("TRY AGAIN ", false);
 					input(onQueryStorePurhase);
 				}
-				else if (__class == "CLERIC")
+				else if (__player.classification == "CLERIC")
 				{
 					//01290 IF Y=4 THEN 00920
 					//01300 IF Y=8 THEN 00920
@@ -595,7 +631,7 @@ package
 						input(onQueryStorePurhase);
 					}
 				}
-				else if (__class == "WIZARD")
+				else if (__player.classification == "WIZARD")
 				{
 					//01350 IF Y=3 THEN 00920
 					//01360 IF Y=8 THEN 00920
@@ -635,7 +671,7 @@ package
 			else
 			{
 				print();
-				nextFunction(exitStore);
+				nextAction(exitStore, "exitStore");
 			}
 		}
 		
@@ -685,12 +721,12 @@ package
 			print(__player.statsList()); //DEBUG
 			print();
 			
-			nextFunction(setupDungeon);
+			nextAction(setupDungeon, "setupDungeon");
 		}
 		
 		private function setupDungeon():void
 		{
-			__debug.msg("setupDungeon");
+			//__debug.msg("setupDungeon");
 			/*
 			01400 REM READ DUNGEON AND START GAME
 			01410 RESTORE #D
@@ -738,14 +774,14 @@ package
 			print("YOU ARE AT (" + __player.x + "," + __player.y + ")");
 			print();
 			
-			nextFunction(Dd1542);
+			nextAction(Dd1542, "Dd1542");
 			
 		}
 		
 		private function Dd1542():void
 		{
 			
-			__debug.msg("Dd1542: Command List:");
+			//__debug.msg("Dd1542: Command List:");
 			
 			//01542 IF Q$<>"YES" THEN 01590
 			//01550 PRINT
@@ -761,6 +797,9 @@ package
 			print("0=PASS  11=BUY H.P.  13-FULL MAP (CHEAT)");
 			print("COMMAND=");
 			input(onCommand);
+			
+			__map.revealTile(__player.x, __player.y);
+			showHUD();
 						
 		}
 		
@@ -768,16 +807,21 @@ package
 		{
 			//01590 PRINT "COMMAND=";
 			//01600 INPUT T
-			
-			__debug.msg("Dd1590: Command prompt:");
+
+			//__debug.msg("Dd1590: Command prompt:");
 			print("COMMAND=");
 			input(onCommand);
+			
+			__map.revealTile(__player.x, __player.y);
+			showHUD();
 		}
 		
 		private function onCommand(args:Array):void
 		{
-			__debug.msg("onCommand: " + args);
+			__debug.clear();
+			//__debug.msg("onCommand: " + args);
 			var _input:int = args[0];
+			
 			/*
 			01605 IF T=11 THEN 10830
 			01606 IF T=12 THEN 11000
@@ -808,82 +852,89 @@ package
 			{
 				case 0: //PASS
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd7000, "Dd7000");
 					break;
 				}
 				case 1: //MOVE
 				{
-					nextFunction(queryMoveDirection);
+					nextAction(Dd2170, "Dd2170 query move");
 					break;
 				}
 				case 2: //OPEN DOOR
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 3: //SEARCH FOR TRAPS AND SECRET DOORS
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 4://SWITCH WEAPON HN HAND
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 5: //FIGHT
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 6: //LOOK AROUND
 				{
 					print(__map.map(__player, __monster));
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 7: //SAVE GAME
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 8: //USE MAGIC
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 9: //BUY MAGIC
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
-				case 10:
+				case 10: //PASS
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd7000, "Dd7000");
 					break;
 				}
 				case 11: //BUY H.P.
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 12: //SAVE DUNGEON
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 13: //CHEAT: View full map
 				{
 					__cheatCount++;
-					print(__map.map(__player, __monster));
-					nextFunction(Dd1542);
+					print(__map.map(__player, __monster, true));
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 				case 14: //CHEAT: Stats
 				{
 					__cheatCount++;
 					print(__player.statsList()); //DEBUG
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
+					break;
+				}
+				case 15: //CHEAT: Equipment
+				{
+					__cheatCount++;
+					print(__player.inventory.inventoryList()); //DEBUG
+					nextAction(Dd1542);
 					break;
 				}
 					
@@ -892,13 +943,13 @@ package
 					print();
 					print("COME ON ");
 					print();
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
 			}
 		}
 		
-		private function queryMoveDirection():void
+		private function Dd2170():void
 		{
 			//02170 REM MOVE
 			//02175 PRINT "YOU ARE AT ";G;" , ";H
@@ -922,54 +973,68 @@ package
 			//02230 IF Q$="DOWN" THEN 02350
 			//02235 IF Q$="D" THEN 02350
 			//02240 GO TO 02180
+
 			
 			switch(_input.charAt(0))
 			{
 				case "D":
 				{
+					nextAction(Dd7000, "Dd7000 after move");
 					move(0,1);
-					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "R":
 				{
+					nextAction(Dd7000, "Dd7000 after move");
 					move(1,0);
-					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "L":
 				{
+					nextAction(Dd7000, "Dd7000 after move");
 					move(-1,0);
-					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "U":
 				{
+					nextAction(Dd7000, "Dd7000 after move");
 					move(0,-1);
-					nextFunction(queryMoveDirection);
 					break;
 				}
 				case "M":
 				{
 					__cheatCount++;
 					print(__map.map(__player, __monster));
-					nextFunction(queryMoveDirection);
+					nextAction(Dd2170, "Dd2170 query move");
 					break;
 				}
 				case "S":
 				{
 					__cheatCount++;
 					print(__player.statsList()); //DEBUG
-					nextFunction(queryMoveDirection);
+					nextAction(Dd2170, "Dd2170 query move");
 					break;
 				}
 					
 				default:
 				{
-					nextFunction(Dd1542);
+					nextAction(Dd1590, "Dd1590");
 					break;
 				}
-			}			
+			}
+			
+			showHUD();
+			
+		}
+		
+		public function showHUD():void
+		{
+			//DEBUG
+			if (__showHUD)
+			{
+				__txtMap.text = __map.map(__player, __monster, true);
+				__txtStats.text = __player.statsList();
+			}
 		}
 		
 		public function move(x:int, y:int):void
@@ -998,20 +1063,26 @@ package
 			7 potion STR + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
 			print HP
 			finish move
-			8 ption CON + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
+			8 potion CON + 1, then poison check: IF RND(0)>.2 then C(0)=C(0)-INT(RND(0)*4+1)
 			print HP
 			finish move
 			
 			*/
 			var pendingTileType:int = __map.getTileType(__player.x + x, __player.y + y, __monster);
 			
-			__debug.msg("  pendingTileType: " + pendingTileType);
+			//__debug.msg("  pendingTileType: " + pendingTileType);
 			
 			
 			switch(pendingTileType)
 			{
 				case 0: //OPEN
 				{
+					//MOVE
+					//02430 LET G=G+S
+					//02440 LET H=H+T
+					//02450 PRINT "DONE"
+					//02460 GO TO 07000
+					
 					__player.x += x;
 					__player.y += y;
 					print("DONE");
@@ -1019,7 +1090,27 @@ package
 				}
 				case 1: //WALL
 				{
-					print("WALL");
+					/*
+					02470 REM
+					02480 PRINT "YOU RAN INTO A WALL"
+					02490 IF RND(0)*12+1>9 THEN 02520
+					02500 PRINT "BUT NO DAMAGE WAS INFLICTED"
+					02510 GO TO 07000
+					02520 PRINT "AND LOOSE 1 HIT POINT"
+					02530 LET C(0)=C(0)-1
+					02540 GO TO 07000
+					*/
+					print("YOU RAN INTO A WALL");
+					if ((DdRoll.D(12)+1) > 9)
+					{
+						print("AND LOOSE 1 HIT POINT");
+						__player.HP -= 1;
+					}
+					else
+					{
+						print("BUT NO DAMAGE WAS INFLICTED");
+					}
+					nextAction(Dd7000, "Dd7000 ran into a wall");
 					break;
 				}
 				case 2: //TRAP
@@ -1029,7 +1120,24 @@ package
 				}
 				case 3: //SECRET DOOR
 				{
-					print("SECRET DOOR");
+					/*
+					SECRET DOOR
+					02990 IF INT(RND(0)*6)+1>4 THEN 0300
+					03000 GO TO 02480
+					03010 PRINT "YOU JUST RAN INTO A SECRET DOOR"
+					03020 PRINT "AND OPENED IT"
+					03030 LET G=G+S
+					03040 LET H=H+T
+					03050 GO TO 02450
+					*/
+					if ((DdRoll.D(6)+1) > 4)
+					{
+						print("YOU JUST RAN INTO A SECRET DOOR");
+						print("AND OPENED IT");
+						__player.x += x;
+						__player.y += y;
+					}
+					print("DONE");
 					break;
 				}
 				case 4: //DOOR?
@@ -1060,31 +1168,54 @@ package
 						print("YOU LOOSE 6 HIT POINT ");
 						__player.HP -= 6;
 					}
-					nextFunction(Dd7000);
+					nextAction(Dd7000, "Dd7000 ran into monster");
 					break;
 				}
 				case 6: //GOLD
 				{
-					print("GOLD!");
+					/*
+					02413 PRINT "AH......GOLD......."
+					02414 G9=INT(RND(0)*500+10)
+					02415 PRINT G9;"PIECES"
+					02416 C(7)=C(7)+G9
+					02417 PRIT "GP= ";C(7)
+					*/
+					print("AH......GOLD.......");
+					var gp:int = DdRoll.D(500) + 10;
+					print(gp + " PIECES");
+					__player.GOLD += gp;
+					print("GP= " + __player.GOLD);
+					poisonCheck();
+					__player.x += x;
+					__player.y += y;
+					print("DONE");
 					break;
 				}
 				case 7: //POTION STR +1
 				{
+					//POTION STR +1 then poison check
+					//02424 LET C(1)=C(1)+1
+					//02425 GO TO 02418
+					
 					print("POTION STR +1"); //DEBUG
 					__player.STR += 1;
+					poisonCheck();
 					__player.x += x;
 					__player.y += y;
-					poisonCheck();
 					print("DONE");
 					break;
 				}
 				case 8: //POTION CON +1
 				{
+					//POTION CON +1 then poison check
+					//02426 LET C(3)=C(3)+1
+					//02429 GO TO 02418
+					
 					print("POTION CON +1"); //DEBUG
 					__player.CON += 1;
+					poisonCheck();
 					__player.x += x;
 					__player.y += y;
-					poisonCheck();
 					print("DONE");
 					break;
 				}
@@ -1096,7 +1227,8 @@ package
 			}
 			
 			//GO TO 07000
-			nextFunction(Dd7000);
+			//__debug.msg("  nextFunction: Dd7000");
+			//nextAction(Dd7000, "Dd7000 after move");
 			
 			
 			/*
@@ -1121,45 +1253,6 @@ package
 			02410 IF D(G+S,H+T)=5 THEN 03060
 			02411 IF D(G+S,H+T)=6 THEN 02413
 			02412 GO TO 02480
-			
-			GOLD
-			02413 PRINT "AH......GOLD......."
-			02414 G9=INT(RND(0)*500+10)
-			02415 PRINT G9;"PIECES"
-			02416 C(7)=C(7)+G9
-			02417 PRIT "GP= ";C(7)
-			
-			POISON CHECK
-			02418 D(G+S,H+T)=0
-			02419 IF RND(0)>.2 THEN 02430
-			02420 PRINT "       POISON      "
-			02421 LET C(0)=C(0)-INT(RND(0)*4+1)
-			02422 PRINT "HP= ";C(0)
-			02423 GO TO 02430
-			
-			POTION STR +1 then poison check
-			02424 LET C(1)=C(1)+1
-			02425 GO TO 02418
-			
-			POTION CON +1 then poison check
-			02426 LET C(3)=C(3)+1
-			02429 GO TO 02418
-			
-			MOVE
-			02430 LET G=G+S
-			02440 LET H=H+T
-			02450 PRINT "DONE"
-			02460 GO TO 07000
-			
-			WALL
-			02470 REM
-			02480 PRINT "YOU RAN INTO A WALL"
-			02490 IF RND(0)*12+1>9 THEN 02520
-			02500 PRINT "BUT NO DAMAGE WAS INFLICTED"
-			02510 GO TO 07000
-			02520 PRINT "AND LOOSE 1 HIT POINT"
-			02530 LET C(0)=C(0)-1
-			02540 GO TO 07000
 			
 			TRAP
 			02550 PRINT "OOOOPS A TRAP AND YOU FELL IN "
@@ -1207,24 +1300,6 @@ package
 			02960 PRINT "OOPS H.P. LOOSE 1"
 			02970 LET C(0)=C(0)-1
 			02980 GO TO 02940
-			
-			SECRET DOOR
-			02990 IF INT(RND(0)*6)+1>4 THEN 0300
-			03000 GO TO 02480
-			03010 PRINT "YOU JUST RAN INTO A SECRET DOOR"
-			03020 PRINT "AND OPENED IT"
-			03030 LET G=G+S
-			03040 LET H=H+T
-			03050 GO TO 02450
-			
-			MONSTER
-			03060 PRINT "YOU RAN INTO THE MONSTER "
-			03070 PRINT "HE SHOVES YOU BACK"
-			03080 PRINT
-			03090 IF INT(RND(0)*2)+1=2 THEN 03120
-			03100 PRINT "YOU LOOSE 6 HIT POINT "
-			03110 LET C(0)=C(0)-6
-			03120 GO TO 07000
 			*/
 		}
 		
@@ -1773,7 +1848,7 @@ package
 		
 		private function Dd7000():void
 		{
-			__debug.msg("Dd7000: ");
+			//__debug.msg("Dd7000: ");
 			/*
 			/*
 			07000 IF K1=-1 THEN 08290 //If monster flag is < 0, current monsters is dead
@@ -1784,59 +1859,61 @@ package
 
 			*/
 			
+			
 			if (!__state.monsterAlive)
 			{
 				__debug.msg(" monsterKilled: ");
-				nextFunction(Dd8290);
+				nextAction(Dd8290, "Dd8290");
 			}
 			else if (__player.HP < 2)
 			{
 				__debug.msg(" HP < 2: ");
-				nextFunction(Dd8160);
+				nextAction(Dd8160, "Dd8160");
 			}
-			
-			nextFunction(Dd7020);
+			else
+			{
+				nextAction(Dd7020, "Dd7020 after Dd7000");
+			}
 		}
 		
 		private function Dd7020():void
 		{
-			__debug.msg("Dd7020: ");
+			//__debug.msg("Dd7020: ");
 		
+			
 			if (__monster.id > 0) //monster type
 			{
 				__debug.msg(" Monster type > 0: " + __monster.id);
-				nextFunction(Dd7160);
+				nextAction(Dd7160, "Dd7160");
 			}
 			else if ((__player.x == 1) && (__player.y == 12)) //MAGIC NUMBER - in-dungeon store??
 			{
 				__debug.msg("  At dungeon store: ");
-				nextFunction(Dd7050);
+				nextAction(Dd7050, "Dd7050");
 			}
 			else
 			{
-				nextFunction(Dd7110);
+				nextAction(Dd7110, "Dd7110");
 			}
-			
-			
 		}
 		
-		private function Dd7110(args:Array):void
+		private function Dd7110():void
 		{
-			__debug.msg("  Dd7110: ");
+			//__debug.msg("  Dd7110: ");
 			//07110 IF RND(0)*20>10 THEN 07830
 			//07120 GO TO 01590
 			
 			if (DdRoll.R(20) > 10)
 			{
-				nextFunction(Dd7830);  //spawn monster
+				nextAction(Dd7830, "Dd7830");  //spawn monster
 			}
 			else
 			{
-				nextFunction(Dd1590);  //command prompt
+				nextAction(Dd1590, "Dd1590");  //command prompt
 			}
 		}
 		
-		private function Dd7050(args:Array):void
+		private function Dd7050():void
 		{
 			
 			/*
@@ -1862,7 +1939,7 @@ package
 			}
 			else
 			{
-				nextFunction(Dd7110);
+				nextAction(Dd7110, "Dd7110");
 			}
 		}
 		
@@ -1900,24 +1977,23 @@ package
 			
 			*/
 			
-			__debug.msg("Dd7160");
 			Dd8410();
 			
 			if (__monster.gold < 1) //BUG? gold?
 			{
-				nextFunction(Dd8290);
+				nextAction(Dd8290, "Dd8290");
 			}
 			else if (__monster.distance < 2.0)
 			{
-				nextFunction(Dd7600);
+				nextAction(Dd7600, "Dd7600");
 			}
 			else if (__monster.distance > 10.0)
 			{
-				nextFunction(Dd1590);
+				nextAction(Dd1590, "Dd1590");
 			}
 			else
 			{
-				nextFunction(Dd7200);
+				nextAction(Dd7200, "Dd7200");
 			}
 		}
 		
@@ -1964,7 +2040,6 @@ package
 			07520 GO TO 07490
 			*/
 			
-			__debug.msg("Dd7200");
 			var x_move:int = 0;
 			var y_move:int = 0;
 			var new_x_loc:int = 0;
@@ -1972,30 +2047,40 @@ package
 			
 			if (Math.abs(__monster.xOffset) > Math.abs(__monster.yOffset))
 			{
-				x_move = __monster.xOffset/Math.abs(__monster.xOffset);
+				x_move = -1 * __monster.xOffset/Math.abs(__monster.xOffset);
 			}
 			else
 			{
-				y_move = __monster.yOffset/Math.abs(__monster.yOffset);
+				y_move = -1 * __monster.yOffset/Math.abs(__monster.yOffset);
 			}
 			
 			new_x_loc = __monster.x + x_move;
 			new_y_loc = __monster.y + y_move;
 			
-			nextFunction(Dd1590);
+			nextAction(Dd1590, "Dd1590");
+			
+			__debug.msg("  x_move: " + x_move + ", y_move: " + y_move);
+			__debug.msg("  monster is at: " + __monster.x + ", " + __monster.y);
+			__debug.msg("  checking new monster loc: " + new_x_loc + ", " + new_y_loc);
 			
 			if (__map.isOnMap(new_x_loc, new_y_loc))
 			{
-				switch(__map.getTileType(new_x_loc, new_y_loc))
+				var new_tile_type:int = __map.getTileType(new_x_loc, new_y_loc);
+				__debug.msg("    new tile type: " + new_tile_type);
+				
+				switch(new_tile_type)
 				{
-					case 0,6,7,8:
+					case 0:
+					case 6:
+					case 7:
+					case 8:
 					{
-						//new location is OK
+						__debug.msg("    new loc OK");
 						break;
 					}
 					case 2:  //Trap
 					{
-						nextFunction(Dd7530);  //Handle trap
+						nextAction(Dd7530, "Dd7530");  //Handle trap
 						break;
 					}
 					case 3,4: //Door
@@ -2018,15 +2103,18 @@ package
 					}
 					default: //No move
 					{
+						__debug.msg("    staying put");
 						new_x_loc = __monster.x;
 						new_y_loc = __monster.y;
 						break;
 					}
 				}
 				
+				__debug.msg("    moving monster to: " + new_x_loc + ", " + new_y_loc);
 				__map.clearTile(__monster.x, __monster.y);
 				__monster.x = new_x_loc;
 				__monster.y = new_y_loc;
+				__debug.msg("      monster is now at: " + __monster.x + ", " + __monster.y);
 			}
 		}
 		
@@ -2040,7 +2128,7 @@ package
 			*/
 			print("GOOD WORK  YOU LED HIM INTO A TRAP");
 			__monster.kill();
-			nextFunction(Dd7000);
+			nextAction(Dd7000, "Dd7000");
 		}
 		
 		/*  ORPHAN?
@@ -2083,39 +2171,50 @@ package
 			
 			//set player armor class
 			if (__player.inventory.hasItem(DdItems.ITEM_ID_PLATE_MAIL))
-			{
+			{			
 				__player.armorClass = 20 + __player.DEX;
+				__debug.msg("  wearing PLATE MAIL: AC: " + __player.armorClass);
 			}
 			else if (__player.inventory.hasItem(DdItems.ITEM_ID_CHAIN_MAIL))
 			{
 				__player.armorClass = 16 + __player.DEX;
+				__debug.msg("  wearing CHAIN MAIL: AC: " + __player.armorClass);
 			}
 			else if (__player.inventory.hasItem(DdItems.ITEM_ID_LEATHER_MAIL))
 			{
 				__player.armorClass = 12 + __player.DEX;
+				__debug.msg("  wearing LEATHER MAIL: AC: " + __player.armorClass);
 			}
 			else
 			{
 				__player.armorClass = 6 + __player.DEX;
+				__debug.msg("  wearing no armor: AC: " + __player.armorClass);
 			}
 			
-			if (DdRoll.R(40) >__player.armorClass)
+			//If the monster hits, he gets to attack again!
+			var _rollR40:Number = DdRoll.R(40);
+			var _rollR2:Number = DdRoll.R(2);
+			
+			__debug.msg("    _rollR40: " + _rollR40);
+			__debug.msg("    _rollR2: " + _rollR2);
+				
+			if (_rollR40 >__player.armorClass)
 			{
 				print("MONSTER SCORES A HIT");
 				__player.HP -= DdRoll.D(__monster.stat2) + 1;
 				print("H.P.=" + __player.HP);
+				nextAction(Dd7000, "Dd7000");
 			}
-			else if (DdRoll.R(2) > 1)
+			else if (_rollR2 > 1)
 			{
 				print("HE HIT YOU BUT NOT GOOD ENOUGH");
+				nextAction(Dd7000, "Dd7000");
 			}
 			else
 			{
 				print("HE MISSED");
+				nextAction(Dd1590, "Dd1590");
 			}
-			
-			nextFunction(Dd7000);
-			
 		}
 		
 		private function Dd7830():void  //Spawn monster
@@ -2131,39 +2230,61 @@ package
 			07900 INPUT Q$
 			*/
 			
-			__debug.msg("Dd7830: ");
 			__monster = __monsterDB.getMonsterByID(0);
 			
 			var monster_spawned:Boolean = false;
 				
+			//TODO fix this spawn loop
 			//try 50 times :)
-			outer: for (var spawnAttempt:int = 0; spawnAttempt < 50; spawnAttempt++)
-			{
-				__debug.msg(" attempting to spawn monster: ");
+			//outer: for (var spawnAttempt:int = 0; spawnAttempt < 50; spawnAttempt++)
+			//{
+			//while (!monster_spawned)
+			//{
+			//for (var spawnAttempt:int = 0; spawnAttempt < 10; spawnAttempt++)
+			//{
+				__debug.msg(" attempting to spawn monster: "); // + spawnAttempt);
 				var _monster:DdMonster;
-				for (var _id:int = 1; _id <= DdMonsters.NUM_MONSTER_TYPES; _id++)
+				for (var _id:int = 1; _id < DdMonsters.NUM_MONSTER_TYPES; _id++)
 				{
 					_monster = __monsterDB.getMonsterByID(_id);
-					if ((_monster.HP >= 1) && (DdRoll.R(1) > .925))
+					if (!monster_spawned && (_monster.HP >= 1) && (DdRoll.R(1) > .925)) //roll prevents sequential monster selection
 					{
 						//choose monster
 						__monster = _monster;
 						monster_spawned = true;
 						__debug.msg("  monster spawned: " + __monster.id);
-						break outer;
+						//break outer;
 					}
 				}
-			}
+			//}
 			
 			if (monster_spawned)
 			{
-				nextFunction(Dd8000);
+				nextAction(Dd8000, "Dd8000");
 			}
 			else
 			{
-				print("ALL MONSTERS DEAD");
-				print("RESET");
-				input(onQueryReset);
+				var monsters_all_dead:Boolean = true;
+				
+				for ( _id = 1; _id < DdMonsters.NUM_MONSTER_TYPES; _id++)
+				{
+					_monster = __monsterDB.getMonsterByID(_id);
+					if (_monster.HP >= 1) 
+					{
+						monsters_all_dead = false;
+					}
+				}
+				
+				if (monsters_all_dead)
+				{
+					print("ALL MONSTERS DEAD");
+					print("RESET");
+					input(onQueryReset);
+				}
+				else
+				{
+					nextAction(Dd1590, "Dd1590 no spawn");
+				}
 			}
 		}
 		
@@ -2189,11 +2310,11 @@ package
 				__state.difficulty += 1;
 				__monsterDB.reset(__state.difficulty);
 				__player.HP += 5;
-				nextFunction(Dd1590);
+				nextAction(Dd1590, "Dd1590");
 			}
 			else
 			{
-				nextFunction(stop);
+				nextAction(stop, "stop");
 			}
 		}
 		
@@ -2220,39 +2341,39 @@ package
 			08140 LET F2=H+N
 			08150 GO TO 07000
 			*/
-			__debug.msg("Dd8000: ");
 			
 			var _distanceFromPlayer:int = DdRoll.D(7)+1;
 			var monster_x:int = 0;
 			var monster_y:int = 0;
 			var monster_placed:Boolean = false;
 			
-			while (!monster_placed)
-			{
+			//TODO fix this loop
+			//while (!monster_placed)
+			//{
 				__debug.msg(" attempting to place monster: ");
-				outer: for (var _m:int= -_distanceFromPlayer; _m < _distanceFromPlayer; _m++)
+				for (var _m:int= -_distanceFromPlayer; _m < _distanceFromPlayer; _m++)
 				{
 					for (var _n:int= -_distanceFromPlayer; _n < _distanceFromPlayer; _n++)
 					{
-						if ((Math.abs(_m) > 2) && (Math.abs(_n) > 2))
+						if (!monster_placed && (Math.abs(_m) > 2) && (Math.abs(_n) > 2))
 						{
 							monster_x = __player.x + _n;
 							monster_y = __player.y + _m;
 							
-							if ((DdRoll.R(1) <= 0.7) &&__map.isOnMap(monster_x, monster_y) && (__map.getTileType(monster_x, monster_y) == 0))
+							if (__map.isOnMap(monster_x, monster_y) && (__map.getTileType(monster_x, monster_y) == 0)) //(DdRoll.R(1) <= 0.7) &&
 							{
 								__debug.msg("  placing monster at: " + monster_x  + ", " + monster_y);
 								__monster.x = monster_x;
 								__monster.y = monster_y;
 								monster_placed = true;
-								break outer;
 							}
 						}
 					}
 				}
-			}
+			//}
 
-			nextFunction(Dd7000);
+			nextAction(Dd7000, "Dd7000");  //BUG?
+			//nextAction(Dd1590, "Dd1590");
 		}
 		
 		private function Dd8160():void  //health alert
@@ -2276,12 +2397,12 @@ package
 			if (__player.HP == 1)
 			{
 				print("WATCH IT H.P.=" + __player.HP)
-				nextFunction(Dd7020);
+				nextAction(Dd7020, "Dd7020");
 			}
 			else if ((__player.HP == 0) && (__player.CON >= 9))
 			{
 				print("H.P.=0 BUT CONST. HOLDS");
-				nextFunction(Dd7020);
+				nextAction(Dd7020, "Dd7020");
 			}
 			else if ((__player.HP <= 0) && (__player.CON >= 9))
 			{
@@ -2292,19 +2413,19 @@ package
 				if (__player.CON < 9)
 				{
 					print("SORRY YOUR DEAD");
-					nextFunction(stop);
+					nextAction(stop, "stop");
 				}
 				else
 				{
 					__player.HP += hp_deficit;
 					print("H.P.=" + __player.HP + " AFTER CONST. DEDUCTION. CON=" + __player.CON);
-					nextFunction(Dd7020);
+					nextAction(Dd7020, "Dd7020");
 				}
 			}
 			else
 			{
 				print("SORRY YOUR DEAD");
-				nextFunction(stop);
+				nextAction(stop, "stop");
 			}
 		}
 		
@@ -2352,7 +2473,7 @@ package
 			print("YOU HAVE" + __player.GOLD + " GOLD ");
 			__monster = __monsterDB.getMonsterByID(0);
 			
-			nextFunction(Dd7000);
+			nextAction(Dd7000, "Dd7000");
 		}
 		
 		public function Dd8410():void  //update monster subroutine
@@ -2386,21 +2507,23 @@ package
 			08670 RETURN
 			*/
 			
+			var found_monster:Boolean = false;
+			__monster.distance = 1000;
+			
 			for (var y_offset:int=-25; y_offset<25; y_offset++)
 			{
-				__monster.distance = 1000;
-				
 				//scan for monster
 				for (var x_offset:int=-25; x_offset<25; x_offset++)
 				{
 					var _x:int = __player.x + x_offset;
 					var _y:int = __player.y + y_offset;
 					
-					if (__map.isOnMap(_x, _y))
+					if (!found_monster && __map.isOnMap(_x, _y))
 					{
 						//found monster
 						if ((__monster.x == _x) && (__monster.y == _y))
 						{
+							found_monster = true;
 							__monster.yOffset = y_offset;
 							__monster.xOffset = x_offset;
 							__monster.distance = Math.sqrt(y_offset*y_offset + x_offset*x_offset);
@@ -2423,6 +2546,8 @@ package
 					__player.attackEffectiveness = 1;
 				}
 			}
+			
+			__debug.msg("8410: Monster Range: " + __monster.distance + ", Attack: " + __player.attackEffectiveness);
 		}
 		
 		private function useSpells():void

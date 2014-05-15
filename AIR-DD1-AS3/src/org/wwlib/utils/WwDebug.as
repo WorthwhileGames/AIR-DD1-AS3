@@ -259,7 +259,8 @@ package org.wwlib.utils
 		{
 			if (__SHOW_DEBUG_MESSAGES)
 			{
-				__debugPanel_mc["debug_field_lvl" + level].appendText(level + ": " + _msg + "\n");
+				//__debugPanel_mc["debug_field_lvl" + level].appendText(level + ": " + _msg + "\n");
+				__debugPanel_mc["debug_field_lvl" + level].appendText(_msg + "\n");
 			}
 		}
 		
