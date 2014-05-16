@@ -8,35 +8,13 @@ package
 	 */
 	public class DdMapTile
 	{
-		private var __type:int;
-		private var __visible:Boolean;
+		public var type:int;
+		public var visible:Boolean;
 		
 		public function DdMapTile(_type:int)
 		{
-			__type = _type;
-			__visible = false;
+			type = _type;
+			visible = false;
 		}
-
-		public function get type():int
-		{
-			return __type;
-		}
-
-		public function set type(value:int):void
-		{
-			__type = value;
-		}
-
-		public function get visible():Boolean
-		{
-			return __visible;
-		}
-
-		public function set visible(value:Boolean):void
-		{
-			__visible = value;
-		}
-
-
 	}
 }

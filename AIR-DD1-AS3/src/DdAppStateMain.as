@@ -33,7 +33,7 @@ package
 	
 	public class DdAppStateMain extends WwAppState
 	{
-		public static const POISON_ROLL_THRESHOLD:Number = 0.2;
+		//public static const POISON_ROLL_THRESHOLD:Number = 0.2;
 		
 		private var __UI_Main:UI_Main;
 		
@@ -46,32 +46,10 @@ package
 				
 		private var __input:DdInput;
 		private var __output:DdOutput;
-		//private var __J4:int;
-		//private var __X:int;
-		//private var __J:int;
-		//private var __K:int;
-		private var __X1:int;
-		private var __X3:int;
-		private var __J9:int;
-		private var __C:Array;
-		private var __C$:Array;
-		private var __W:Array;
-		private var __D:Array;
-		private var __P:Array;
-		private var __I$:Array;
-		private var __B:Array;
-		private var __B$:Array;
-		private var __E:Array;
-		private var __F:Array;
-		private var __X5:Array;
-		private var __X6:Array;
-		private var __X2:Array;
-		private var __X4:Array;
-		//private var __G:int;
-		//private var __H:int;
-		private var __J6_reset:int;
+		
 		private var __Q$:String;
-		private var __N$:String;
+		//private var resetOnLevelComplete:int;
+
 		
 		//private var __DUNGEON:int;
 		//private var __class:String;
@@ -115,7 +93,7 @@ package
 		
 		public function onVirtualKeyEvent(key_code:int):void
 		{	
-			WwDebug.instance.msg("onVirtualKeyEvent:key_code: " + key_code);
+			//WwDebug.instance.msg("onVirtualKeyEvent:key_code: " + key_code);
 			if (__input.reading)
 			{
 				__input.onKeyDown(key_code);
@@ -171,10 +149,6 @@ package
 			
 			__txtMap.addEventListener(MouseEvent.MOUSE_DOWN, onMapClick);
 			
-			//__txtPrompt = __UI_Main.txt_prompt;
-			//__txtInput = __UI_Main.txt_input;
-			//__btnEnter = __UI_Main.btn_enter;
-			
 			ttKeyboardMC = __UI_Main["keyboard"];
 			ttKeyboard = new DdKeyboard(ttKeyboardMC, onVirtualKeyEvent);
 			
@@ -227,7 +201,7 @@ package
 			00310 DATA "FLASK OF OIL",2,"SILVER CROSS",25,"SPARE FOOD",5
 			*/
 			
-			
+			/*
 			//__X = 0;  //equip count
 			//__J = 0;  //equipped item
 			//__K = 0;  //current monster type
@@ -251,10 +225,7 @@ package
 			__X4 = new Array(100);  //wizard spell slots
 			//__G = Math.random()*24 +2; //INT(RND(0)*24+2; //player row, y
 			//__H = Math.random()*24 +2; //INT(RND(0)*24+2); //player col, x
-			
-			__J6_reset = 0;
-			//__DUNGEON = 0;
-			//__class = "NONE";
+			*/
 			
 			__itemTypes = new DdItems();
 			__spellTypesCleric = new DdSpells(DdSpells.CLERIC_TYPE);
@@ -262,11 +233,9 @@ package
 			__map = new DdMap();
 			__player = new DdPlayer();
 			__state = new DdGameState();
-			__state.map = __map;
 			__state.difficulty = 1; //__J4 = 1; //difficulty
-			
-			//__inventoryCount = 0;
-			
+			__state.resetOnLevelComplete = 1;
+						
 			__commands = new Array("PASS", "MOVE", "OPEN DOOR", "SEARCH FOR TRAPS AND SECRET DOORS", "SWITCH WEAPON HN HAND", "FIGHT", "LOOK AROUND", "SAVE GAME", "USE MAGIC", "BUY MAGIC", "BUY H.P.");
 			
 			__cheatCount = 0;
@@ -332,12 +301,13 @@ package
 			//00330 PRINT
 			print("     DUNGEONS AND DRAGONS #1");
 			print();
-			print("I/O AND MOVEMENT TEST");
+			print("COMPLETED: I/O, MOVEMENT AND MONSTER LOGIC");
+			print("TODO: COMBAT, SPELLS");
 			print();
 			
 			//00340 PRINT "DO YOU NEED INSTUCTIONS ";
 			//00350 INPUT Q$
-			print("DO YOU NEED INSTUCTIONS", false);
+			print("DO YOU NEED INSTRUCTIONS:", false);
 			input(onQueryInstructions);
 		}
 		
@@ -360,7 +330,7 @@ package
 			{
 				//00380 PRINT "OLD OR NEW GAME";
 				//00390 INPUT Q$
-				print("OLD OR NEW GAME", false);
+				print("OLD OR NEW GAME:", false);
 				input(onQueryOldOrNewGame);
 				
 			}
@@ -383,14 +353,14 @@ package
 			if (__Q$ == "OLD")
 			{
 				print("DEBUG: READING OLD GAME");
-				__map.load(__state.DUNGEON);
+				__map.load(__state.dungeon);
 
 			}
 			else
 			{
 				//00410 PRINT "DUNGEON #";
 				//00420 INPUT D
-				print("DUNGEON #", false);
+				print("DUNGEON #:", false);
 				input(onQueryDungeonNumber);
 			}
 		}
@@ -399,19 +369,19 @@ package
 		{
 			//00421 PRINT "CONTINUES RESET 1=YES,2=NO ";
 			//00422 INPUT J6
-			__state.DUNGEON = args[0];
-			print("CONTINUES RESET 1=YES,2=NO", false);
+			__state.dungeon = args[0];
+			print("CONTINUES RESET 1=YES,2=NO:", false);
 			input(onQueryContinues);
 		}
 		
 		private function onQueryContinues(args:Array):void
 		{
-			__J6_reset = int(args[0]);
+			__state.resetOnLevelComplete = int(args[0]);
 			//__debug.msg(" onQueryContinues: " + __J6_reset);
 			//00430 REM ROLLING CHARICTERISTICS
 			//00440 PRINT "PLAYERS NME ";
 			//00450 INPUT N$
-			print("PLAYERS NME", false);
+			print("PLAYER'S NAME:", false);
 			input(onQueryPlayersName);
 		}
 		
@@ -464,7 +434,7 @@ package
 			
 			print("CLASSIFICATION");
 			print("WHICH DO YOU WANT TO BE");
-			print("FIGHTER ,CLERIC ,OR WIZARD", false);
+			print("FIGHTER ,CLERIC ,OR WIZARD:", false);
 			input(onQueryClassification);
 		}
 		
@@ -522,7 +492,7 @@ package
 				//00680 PRINT "FAST OR NORM"
 				//00690 INPUT Q3$
 				print("BUYING WEAPONS");
-				print("FAST OR NORM", false);
+				print("FAST OR NORM:", false);
 				input(onQueryBuyingWeapons);
 			}
 		}
@@ -564,7 +534,7 @@ package
 			//00830 REM
 			//00850 LET X=X+1
 			//00860 INPUT Y
-			print ("ITEM TO BUY ", false);
+			print ("ITEM TO BUY:", false);
 			input(onQueryStorePurhase);
 		}
 		
@@ -599,7 +569,7 @@ package
 				if ((__player.GOLD - item.price) < 0)
 				{
 					print("COSTS TOO MUCH");
-					print("TRY AGAIN ", false);
+					print("TRY AGAIN:", false);
 					input(onQueryStorePurhase);
 				}
 				else if (__player.classification == "CLERIC")
@@ -627,7 +597,7 @@ package
 					}
 					else
 					{
-						print("YOUR A CLERIC YOU CANT USE THAT ", false);
+						print("YOU'RE A CLERIC YOU CANT USE THAT ", false);
 						input(onQueryStorePurhase);
 					}
 				}
@@ -655,7 +625,7 @@ package
 					}
 					else
 					{
-						print("YOUR A WIZARD YOU CANT USE THAT ", false);
+						print("YOU'RE A WIZARD YOU CANT USE THAT ", false);
 						input(onQueryStorePurhase);
 					}
 				}
@@ -680,7 +650,7 @@ package
 			//01010 REM
 			//01020 PRINT "EQ LIST ";
 			//01030 INPUT Q$
-			print("EQ LIST ", false);
+			print("EQ LIST:", false);
 			input(onQueryEQList);
 		}
 		
@@ -715,7 +685,7 @@ package
 			
 			print();
 			print();
-			print("YOUR CHARACTERISTICS ARE;");
+			print("YOUR CHARACTERISTICS ARE:");
 			if (__player.HP == 1) __player.HP = 2;
 			//print("HIT POINTS " + __player.HP);
 			print(__player.statsList()); //DEBUG
@@ -745,7 +715,7 @@ package
 			01460 NEXT M
 			*/
 			
-			__map.generate(__state.DUNGEON);
+			__map.generate(__state.dungeon);
 			var player_coords:Point = __map.getRandomFreeTile();
 			__player.x = player_coords.x;
 			__player.y = player_coords.y;
@@ -770,7 +740,7 @@ package
 		{
 			print();
 			print();
-			print("WELCOME TO DUNGEON #" + __state.DUNGEON);
+			print("WELCOME TO DUNGEON #" + __state.dungeon);
 			print("YOU ARE AT (" + __player.x + "," + __player.y + ")");
 			print();
 			
@@ -795,7 +765,7 @@ package
 			print("4=SWITCH WEAPON HN HAND  5=FIGHT");
 			print("6=LOOK AROUND  7=SAVE GAME  8=USE MAGIC  9=BUY MAGIC");
 			print("0=PASS  11=BUY H.P.  13-FULL MAP (CHEAT)");
-			print("COMMAND=");
+			print("COMMAND:");
 			input(onCommand);
 			
 			__map.revealTile(__player.x, __player.y);
@@ -809,7 +779,7 @@ package
 			//01600 INPUT T
 
 			//__debug.msg("Dd1590: Command prompt:");
-			print("COMMAND=");
+			print("COMMAND:");
 			input(onCommand);
 			
 			__map.revealTile(__player.x, __player.y);
@@ -956,7 +926,7 @@ package
 			//02180 PRINT "  DOWN  RIGHT  LEFT  OR  UP"
 			//02190 INPUT Q$
 			print("YOU ARE AT (" + __player.x + "," + __player.y + ")");
-			print("  DOWN  RIGHT  LEFT  OR  UP", false);
+			print("  DOWN  RIGHT  LEFT  OR  UP:", false);
 			input(onMoveDirection);
 		}
 		
@@ -1032,7 +1002,7 @@ package
 			//DEBUG
 			if (__showHUD)
 			{
-				__txtMap.text = __map.map(__player, __monster, true);
+				__txtMap.text = __map.map(__player, __monster, true, false);
 				__txtStats.text = __player.statsList();
 			}
 		}
@@ -1316,7 +1286,7 @@ package
 			__map.clearTile(__player.x, __player.y);
 			var poison_roll:Number = Math.random();
 			__debug.msg(" poison_roll: " + poison_roll);
-			if (poison_roll <= POISON_ROLL_THRESHOLD)
+			if (poison_roll <= DdRoll.POISON_ROLL_THRESHOLD)
 			{
 				print("       POISON      ");
 				var con_deduction:int = (Math.random()*4)+1;
@@ -1797,7 +1767,7 @@ package
 			*/
 		}
 		
-		private function dungeonStore():void
+		private function saveDungeon():void
 		{
 			/*
 			06610 REM SAVE GAME
@@ -1860,14 +1830,14 @@ package
 			*/
 			
 			
-			if (!__state.monsterAlive)
+			if (!__monster.alive)
 			{
 				__debug.msg(" monsterKilled: ");
 				nextAction(Dd8290, "Dd8290");
 			}
 			else if (__player.HP < 2)
 			{
-				__debug.msg(" HP < 2: ");
+				__debug.msg(" HP < 2:");
 				nextAction(Dd8160, "Dd8160");
 			}
 			else
@@ -1934,7 +1904,7 @@ package
 			if (__player.GOLD >= 100)
 			{
 				__player.GOLD -= 100;
-				print("WANT TO BUY MORE EQUIPMENT");
+				print("WANT TO BUY MORE EQUIPMENT:");
 				input(onQueryBuyMoreEquipment);
 			}
 			else
@@ -1954,7 +1924,7 @@ package
 				//00830 REM
 				//00850 LET X=X+1
 				//00860 INPUT Y
-				print ("ITEM TO BUY ", false);
+				print ("ITEM TO BUY:", false);
 				input(onQueryStorePurhase);
 			}
 			else
@@ -2278,7 +2248,7 @@ package
 				if (monsters_all_dead)
 				{
 					print("ALL MONSTERS DEAD");
-					print("RESET");
+					print("RESET?:");
 					input(onQueryReset);
 				}
 				else
@@ -2412,7 +2382,7 @@ package
 				
 				if (__player.CON < 9)
 				{
-					print("SORRY YOUR DEAD");
+					print("SORRY YOU'RE DEAD");
 					nextAction(stop, "stop");
 				}
 				else
@@ -2424,7 +2394,7 @@ package
 			}
 			else
 			{
-				print("SORRY YOUR DEAD");
+				print("SORRY YOU'RE DEAD");
 				nextAction(stop, "stop");
 			}
 		}
@@ -2460,7 +2430,7 @@ package
 			print("GOOD WORK YOU JUST KILLED A " + __monster.name);
 			print("AND GET " + __monster.maxHP + " GOLD PIECES");
 			
-			if (__J6_reset == 1)
+			if (__state.resetOnLevelComplete == 1)
 			{
 				__monster.gold = __monster.maxGold * __monster.level;
 				__monster.HP = __monster.maxHP * __monster.level;  //BUG? this is transposed in the original baseic
@@ -2547,7 +2517,7 @@ package
 				}
 			}
 			
-			__debug.msg("8410: Monster Range: " + __monster.distance + ", Attack: " + __player.attackEffectiveness);
+			__debug.msg("8410: Monster at: " + __monster.x + ", " + __monster.y + " Range: " + __monster.distance + ", Attack: " + __player.attackEffectiveness);
 		}
 		
 		private function useSpells():void
@@ -2967,36 +2937,6 @@ REM VERSION 1.0  2014-04-17: INITIAL VERSION
 					break;
 			}
 		}
-
-		
-		public override function reset():void
-		{
-		}
-		
-		public override function show():void
-		{
-		}
-		
-		public override function hide():void
-		{
-		}
-		
-		public override function suspend():void
-		{
-		}
-		
-		public override function save(id:String):void
-		{
-		}
-		
-		public override function load(id:String):void
-		{
-		}
-		
-		//public override function get starlingRoot():starling.display.Sprite
-		//{
-		//	return null;
-		//}
 		
 		public override function dispose():void
 		{

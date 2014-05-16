@@ -8,47 +8,47 @@ package
 	 */
 	public class DdMonster
 	{
-		private var __id:int;
-		private var __name:String;
-		private var __level:int;
-		private var __stat2:int;
-		private var __stat3:int;
-		private var __stat4:int;
-		private var __stat5:int;
-		private var __stat6:int;
-		private var __alive:Boolean;
-		private var __xOffset:int;
-		private var __yOffset:int;
-		private var __distance:Number;
-		private var __x:int;
-		private var __y:int;
+		public var id:int;
+		public var name:String;
+		public var level:int;
+		public var stat2:int;
+		public var gold:int;
+		public var maxGold:int;
+		public var HP:int;
+		public var maxHP:int;
+		public var alive:Boolean;
+		public var xOffset:int;
+		public var yOffset:int;
+		public var distance:Number;
+		public var x:int;
+		public var y:int;
 		
-		public function DdMonster(id:int, name:String, s1:int, s2:int, s3:int, s4:int, s5:int, s6:int)
+		public function DdMonster(_id:int, _name:String, s1:int, s2:int, s3:int, s4:int, s5:int, s6:int)
 		{
-			__id = id;
-			__name = name;
-			__level = s1; //level
-			__stat2 = s2; //
-			__stat3 = s3; //gold
-			__stat4 = s4; //max gold
-			__stat5 = s5; //hp
-			__stat6 = s6; //max hp
+			id = _id;
+			name = _name;
+			level = s1; //level
+			stat2 = s2; //
+			gold = s3; //gold
+			maxGold = s4; //max gold
+			HP = s5; //hp
+			maxHP = s6; //max hp
 			
 			reset();
 		}
 		
 		public function reset(_difficulty:int=1):void
 		{
-			__stat3 = __stat4 * _difficulty;  //__stat4 = __stat3 * _difficulty;
-			__stat5 = __stat6 * _difficulty;
-			__level = 1;
+			gold = maxGold * _difficulty;  //__stat4 = __stat3 * _difficulty;
+			HP = maxHP * _difficulty;
+			level = 1;
 			
-			__alive = true;
-			__xOffset = 0;
-			__yOffset = 0;
+			alive = true;
+			xOffset = 0;
+			yOffset = 0;
 			
-			__x = -1;
-			__y = -1;
+			x = -1;
+			y = -1;
 		}
 		
 		public function kill():void
@@ -77,122 +77,6 @@ package
 		01270 NEXT M
 		01280 RETURN
 		*/
-
-		public function get name():String
-		{
-			return __name;
-		}
-
-		public function get level():int
-		{
-			return __level;
-		}
-
-		public function get stat2():int
-		{
-			return __stat2;
-		}
-
-		public function get gold():int
-		{
-			return __stat3;
-		}
-
-		public function get maxGold():int
-		{
-			return __stat4;
-		}
-
-		public function get HP():int
-		{
-			return __stat5;
-		}
-
-		public function get maxHP():int
-		{
-			return __stat6;
-		}
-
-		public function set maxGold(value:int):void
-		{
-			__stat4 = value;
-		}
-
-		public function set HP(value:int):void
-		{
-			__stat5 = value;
-		}
-
-		public function get alive():Boolean
-		{
-			return __alive;
-		}
-
-		public function set alive(value:Boolean):void
-		{
-			__alive = value;
-		}
-
-		public function get xOffset():int
-		{
-			return __xOffset;
-		}
-
-		public function set xOffset(value:int):void
-		{
-			__xOffset = value;
-		}
-
-		public function get yOffset():int
-		{
-			return __yOffset;
-		}
-
-		public function set yOffset(value:int):void
-		{
-			__yOffset = value;
-		}
-
-		public function get distance():Number
-		{
-			return __distance;
-		}
-
-		public function set distance(value:Number):void
-		{
-			__distance = value;
-		}
-
-		public function get id():int
-		{
-			return __id;
-		}
-
-		public function get x():int
-		{
-			return __x;
-		}
-
-		public function set x(value:int):void
-		{
-			__x = value;
-		}
-
-		public function get y():int
-		{
-			return __y;
-		}
-
-		public function set y(value:int):void
-		{
-			__y = value;
-		}
-
-		public function set gold(value:int):void
-		{
-			__stat3 = value;
-		}
-
 
 	}
 }

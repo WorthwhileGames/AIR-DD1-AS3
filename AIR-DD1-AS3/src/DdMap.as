@@ -25,14 +25,8 @@ package
 		
 		public function DdMap()
 		{
-			init();
 		}
-		
-		private function init():void
-		{	
-			
-		}
-		
+				
 		public function generate(dungeon_number:int):void
 		{
 			__rows = new Array();
@@ -85,6 +79,24 @@ package
 			generated = true;
 		}
 		
+		/*
+		01400 REM READ DUNGEON AND START GAME
+		01410 RESTORE #D
+		1415 PRINT "READING DUNGEON NUM. ";D
+		01420 FOR M=0 TO 25
+		01430 FOR N=0 TO 25
+		01431 D(M,N)=0
+		01432 IF D=0 THEN 01450
+		01440 READ #D,D(M,N)
+		01443 IF D(M,N)<>0 THEN 01450
+		01445 IF RND(0)<.97 THEN 01447
+		01446 D(M,N)=7
+		01447 IF RND(0)<.97 THEN 01450
+		01448 D(M,N)=8
+		01450 NEXT N
+		01460 NEXT M
+		*/
+		
 		private function generateRow(type_data:Array):void
 		{
 			var new_row:Array = new Array(COLUMNS);
@@ -128,45 +140,8 @@ package
 				}
 			}
 		}
-		
-		/*
-		public function look(player_x:int, player_y:int):String
-		{
-			var result:String = "";
-			var map_start_x:int = Math.max(0, player_x - 5); //MAGIC NUMBER
-			var map_end_x:int = Math.min(ROWS, player_x + 5); //MAGIC NUMBER
-			var map_start_y:int = Math.max(0, player_y - 5); //MAGIC NUMBER
-			var map_end_y:int = Math.min(COLUMNS, player_y + 5); //MAGIC NUMBER
-			
-			//WwDebug.instance.msg("map: " + __rows + ", " + __rows.length);
-			
-			for (var y:int=map_start_y; y < map_end_y; y++)
-			{
-				var row:Array = __rows[y];
-				//WwDebug.instance.msg(i + ": " + row);
 				
-				for (var x:int=map_start_x; x < map_end_x; x++)
-				{
-					var tile:DdMapTile = row[x] as DdMapTile;
-					
-					if ((player_x == x) && (player_y == y))
-					{
-						result += __symbols[PLAYER_SYMBOL];
-					}
-					else
-					{
-						result += __symbols[tile.type];
-					}
-				}
-				
-				result += "\n";
-			}
-			
-			return result;
-		}
-		*/
-		
-		public function map(player:DdPlayer, monster:DdMonster, show_invisible:Boolean=false):String
+		public function map(player:DdPlayer, monster:DdMonster, show_invisible:Boolean=false, hide_secrets:Boolean=true):String
 		{
 			var result:String = "";
 			
@@ -194,6 +169,10 @@ package
 					{
 						result += __symbols[MONSTER_SYMBOL];
 					}
+					else if (hide_secrets && tile.type > 1)
+					{
+						result += " ";
+					}
 					else
 					{
 						result += __symbols[tile.type];
@@ -205,24 +184,6 @@ package
 			
 			return result;
 		}
-		
-		/*
-		01400 REM READ DUNGEON AND START GAME
-		01410 RESTORE #D
-		1415 PRINT "READING DUNGEON NUM. ";D
-		01420 FOR M=0 TO 25
-		01430 FOR N=0 TO 25
-		01431 D(M,N)=0
-		01432 IF D=0 THEN 01450
-		01440 READ #D,D(M,N)
-		01443 IF D(M,N)<>0 THEN 01450
-		01445 IF RND(0)<.97 THEN 01447
-		01446 D(M,N)=7
-		01447 IF RND(0)<.97 THEN 01450
-		01448 D(M,N)=8
-		01450 NEXT N
-		01460 NEXT M
-		*/
 		
 		public function getRandomFreeTile():Point
 		{

@@ -65,7 +65,7 @@ package
 			_item = new DdItem(9, "CHAIN MAIL", 30, 4, 1/7, 1/6);
 			__items[9] = _item;
 			
-			_item = new DdItem(10, "TLTE MAIL", 50, 3, 1/8, 1/5);
+			_item = new DdItem(10, "PLATE MAIL", 50, 3, 1/8, 1/5);
 			__items[10] = _item;
 			
 			_item = new DdItem(11, "ROPE", 1, 5, 1/9, 1/6);

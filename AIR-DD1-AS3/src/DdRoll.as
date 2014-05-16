@@ -8,6 +8,9 @@ package
 	 */
 	public class DdRoll
 	{
+		
+		public static const POISON_ROLL_THRESHOLD:Number = 0.2;
+		
 		public function DdRoll()
 		{
 		}

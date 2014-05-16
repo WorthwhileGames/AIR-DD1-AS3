@@ -8,41 +8,21 @@ package
 	 */
 	public class DdItem
 	{
-		private var __id:int;
-		private var __name:String;
-		private var __price:int;
-		private var __range:Number;
-		private var __hitMultiplier:Number;
-		private var __criticalHitMultiplier:Number;
+		public var id:int;
+		public var name:String;
+		public var price:int;
+		public var range:Number;
+		public var hitMultiplier:Number;
+		public var criticalHitMultiplier:Number;
 		
-		public function DdItem(id:int, name:String, price:int, range:Number, hit_multiplier:Number, critical_hit_multiplier:Number)
+		public function DdItem(_id:int, _name:String, _price:int, _range:Number, hit_multiplier:Number, critical_hit_multiplier:Number)
 		{
-			__id = id;
-			__name = name;
-			__price = price;
-			__range = range;
-			__hitMultiplier = hit_multiplier;
-			__criticalHitMultiplier = critical_hit_multiplier;
-		}
-
-		public function get name():String
-		{
-			return __name;
-		}
-
-		public function get price():int
-		{
-			return __price;
-		}
-
-		public function get range():Number
-		{
-			return __range;
-		}
-
-		public function get id():int
-		{
-			return __id;
+			id = _id;
+			name = _name;
+			price = _price;
+			range = _range;
+			hitMultiplier = hit_multiplier;
+			criticalHitMultiplier = critical_hit_multiplier;
 		}
 	}
 }
