@@ -271,6 +271,7 @@ package
 			{
 				__txtMap.removeEventListener(MouseEvent.MOUSE_DOWN, onMapClick);
 				__showHUD = true;
+				__player.HP = 100;
 				showHUD();
 			}
 		}
@@ -346,6 +347,10 @@ package
 			//01750 STOP
 			//01760 GO TO 00380
 			print("WHO SAID YOU COULD PLAY");
+			print("");
+			print("NAME?", false);
+			
+			input(onQueryPlayersName);
 		}
 		
 		private function onQueryOldOrNewGame(args:Array):void
@@ -636,6 +641,8 @@ package
 				{
 					__player.GOLD = __player.GOLD - item.price;
 					print("GP= " + __player.GOLD, false);
+					print("");
+					print("ITEM TO BUY:", false)
 					//__W[__inventoryCount++] = _input -1;
 					__player.inventory.addItem(item);
 					input(onQueryStorePurhase);
@@ -1025,6 +1032,7 @@ package
 			{
 				__txtMap.text = __map.map(__player, __monster, true, false);
 				__txtStats.text = __player.statsList();
+				__txtStats.text += "\n" + __monster.statsList();
 			}
 		}
 		
@@ -1106,7 +1114,10 @@ package
 				}
 				case 2: //TRAP
 				{
-					print("TRAP");
+					__player.x += x;
+					__player.y += y;
+					//__map.clearTile(__player.x, __player.y);
+					nextAction(Dd2550, "Dd2550");
 					break;
 				}
 				case 3: //SECRET DOOR
@@ -1131,9 +1142,9 @@ package
 					print("DONE");
 					break;
 				}
-				case 4: //DOOR?
+				case 4: //DOOR
 				{
-					print("DOOR?");
+					print("DOOR");
 					break;
 				}
 				case DdMap.TILE_ID_MONSTER: //MONSTER
@@ -1179,6 +1190,7 @@ package
 					poisonCheck();
 					__player.x += x;
 					__player.y += y;
+					__map.clearTile(__player.x, __player.y);
 					print("DONE");
 					break;
 				}
@@ -1193,6 +1205,7 @@ package
 					poisonCheck();
 					__player.x += x;
 					__player.y += y;
+					__map.clearTile(__player.x, __player.y);
 					print("DONE");
 					break;
 				}
@@ -1207,6 +1220,7 @@ package
 					poisonCheck();
 					__player.x += x;
 					__player.y += y;
+					__map.clearTile(__player.x, __player.y);
 					print("DONE");
 					break;
 				}
@@ -1244,7 +1258,12 @@ package
 			02410 IF D(G+S,H+T)=5 THEN 03060
 			02411 IF D(G+S,H+T)=6 THEN 02413
 			02412 GO TO 02480
-			
+			*/
+		}
+		
+		private function Dd2550():void
+		{
+			/*
 			TRAP
 			02550 PRINT "OOOOPS A TRAP AND YOU FELL IN "
 			02560 IF RND(0)*3>2 THEN 02580
@@ -1292,6 +1311,44 @@ package
 			02970 LET C(0)=C(0)-1
 			02980 GO TO 02940
 			*/
+			
+			print("OOOOPS A TRAP AND YOU FELL IN");
+			if (DdRoll.D(3) > 2)
+			{
+				print("AND HIT POINTS LOOSE 1");
+				__player.HP -= 1;
+			}
+			
+			print("I HOPE YOU HAVE SOME SPIKES AND PREFERABLY ROPE");
+			print("LET ME SEE");
+			
+			if (__player.inventory.hasItem(12))
+			{
+				if (__player.inventory.hasItem(13))
+				{
+					print("GOOD, YOU HAVE BOTH");
+					print("YOU MANAGE TO GET OUT EASY");
+				}
+				else
+				{
+					print("NO ROPE, BUT YOU HAVE SPIKES");
+					
+					if (DdRoll.D(6) > (__player.STR /3))
+					{
+						print("OOPS! YOU LOSE 1 HP, BUT...");
+						__player.HP -=1;
+					}
+				}
+					
+				print("YOU ARE NOW STANDING PRECARIOUSLY ON THE EDGE");
+				print("YOU SHOULD MOVE CAREFULLY");
+				nextAction(Dd2170, "Dd2170");				
+			}
+			else
+			{
+				print("NO SPIKES! AH, THATS TOO BAD 'CAUSE YOU'RE DEAD");
+				nextAction(stop, "stop");
+			}
 		}
 		
 		public function poisonCheck():void
@@ -1446,9 +1503,11 @@ package
 			
 			print("SEARCH.........SEARCH...........SEARCH...........");
 			print("TRAPS?");
-			__map.locate(2,__player);
+			print(__map.locate(2,__player));
+			print("SECRET DOORS?");
+			print(__map.locate(3,__player));
 			print("DOORS?");
-			__map.locate(3,__player);
+			print(__map.locate(4,__player));
 			
 		}
 		
@@ -1516,17 +1575,18 @@ package
 			03900 INPUT Q$
 			*/
 			
+			
+			
 			print("YOUR WEAPON IS: " + __player.equippedItem.name);
 			
 			if (__monster.id ==0)
 			{
+				//NOTHING
 				nextAction(Dd1590, "Dd1590");
-				
 			}
 			else
 			{
-				print(__monster.name)
-				print("HP: " + __monster.HP);
+				print(__monster.name);
 				
 				switch(__player.equippedItemID)
 				{
@@ -1537,22 +1597,22 @@ package
 					}
 					case 1:
 					{
-						
+						nextAction(Dd4680, "Dd4680");
 						break;
 					}
 					case 2:
 					{
-						
+						nextAction(Dd4860, "Dd4860");
 						break;
 					}
 					case 3:
 					{
-						
+						nextAction(Dd5040, "Dd5040");
 						break;
 					}
 					case 4:
 					{
-						
+						nextAction(Dd5270, "Dd5270");
 						break;
 					}
 					case 5:
@@ -1566,7 +1626,7 @@ package
 					case 13:
 					case 14:
 					{
-						
+						nextAction(Dd5440, "Dd5440");
 						break;
 					}
 					case 15:
@@ -1579,6 +1639,7 @@ package
 						
 					default:
 					{
+						nextAction(Dd1590, "Dd1590");
 						break;
 					}
 				}
@@ -2417,6 +2478,7 @@ package
 
 			*/
 			
+			__monster.alive = __monster.HP > 0;
 			
 			if (!__monster.alive)
 			{
@@ -2760,7 +2822,7 @@ package
 			{
 				print("MONSTER SCORES A HIT");
 				__player.HP -= DdRoll.D(__monster.stat2) + 1;
-				print("H.P.=" + __player.HP);
+				print("YOUR HP=" + __player.HP);
 				nextAction(Dd7000, "Dd7000");
 			}
 			else if (_rollR2 > 1)
@@ -3012,9 +3074,8 @@ package
 			__debug.msg("Dd8290: Monster killed");
 			__monster.alive = false;
 			__player.GOLD += __monster.maxHP;
-			__map.clearTile(__monster.x, __monster.y);
-			__monster.x = -1;
-			__monster.y = -1;
+			__monster.x = 10;
+			__monster.y = 10;
 			print("GOOD WORK YOU JUST KILLED A " + __monster.name);
 			print("AND GET " + __monster.maxHP + " GOLD PIECES");
 			
@@ -3412,13 +3473,13 @@ package
 					case 7:
 					{
 						__monster.HP -= (6 + DdRoll.D(11));
-						print("M-HP= " +__monster.HP);
+						print("MONSTER HP= " +__monster.HP);
 						break;
 					}
 					case 8:
 					{
 						__monster.HP -= (9 + DdRoll.D(11));
-						print("M-HP= " +__monster.HP);
+						print("MONSTER HP= " +__monster.HP);
 						break;
 					}
 					case 9:
@@ -3502,8 +3563,6 @@ package
 				print("YOU CANT BUY ANY");
 				nextAction(Dd1590, "Dd1590");
 			}
-			
-			input(onQueryDoYouKnowTheChoicesCleric);
 		}
 		
 		private function onQueryDoYouKnowTheChoicesCleric(args:Array):void
@@ -3564,7 +3623,7 @@ package
 			10370 INPUT Q$
 			*/
 			
-			if ((_input > 1) && (_input <= 8))
+			if ((_input >= 1) && (_input <= 8))
 			{
 				var spell:DdSpell = __spellTypesCleric.item(_input);
 				if (__player.GOLD - spell.cost > 0)
@@ -3643,7 +3702,7 @@ package
 			10710 GO TO 01590
 			*/
 			
-			if ((_input > 1) && (_input <= 10))
+			if ((_input >= 1) && (_input <= 10))
 			{
 				var spell:DdSpell = __spellTypesWizard.item(_input);
 				if (__player.GOLD - spell.cost > 0)

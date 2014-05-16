@@ -117,6 +117,42 @@ package
 			}
 		}
 		
+		public function getEquippedItemInfo():String
+		{
+			if (equippedItem != null)
+			{
+				return equippedItem.id + ": " + equippedItem.name;
+			}
+			else
+			{
+				return "NONE";
+			}
+		}
+		
+		public function getEquippedClericalSpellInfo():String
+		{
+			if (equippedClericalSpell != null)
+			{
+				return equippedClericalSpell.id + ": " + equippedClericalSpell.name;
+			}
+			else
+			{
+				return "NONE";
+			}
+		}
+		
+		public function getEquippedSpellInfo():String
+		{
+			if (equippedSpell != null)
+			{
+				return equippedSpell.id + ": " + equippedSpell.name;
+			}
+			else
+			{
+				return "NONE";
+			}
+		}
+		
 		public function rollStats():void{
 			
 			STR = DdRoll.D6x3();
@@ -141,6 +177,10 @@ package
 			_list += "INT=" + INT + "\n";
 			_list += "GOLD=" + GOLD + "\n";
 			_list += "HP=" + HP + "\n";
+			
+			_list += "WEAPON=" + getEquippedItemInfo() + "\n";
+			_list += "CLERICAL SPELL=" + getEquippedClericalSpellInfo() + "\n";
+			_list += "SPELL=" + getEquippedSpellInfo() + "\n";
 		
 			return _list;
 		}

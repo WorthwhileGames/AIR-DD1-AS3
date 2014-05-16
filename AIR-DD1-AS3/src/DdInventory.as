@@ -34,7 +34,7 @@ package
 				var item:DdItem = __inventory[i];
 				if (item.id != 0)
 				{
-					_list += (i + 1) + "\t" + item.name + "\n";
+					_list += i + "\t" + item.name + "\n";
 				}
 			}
 			

@@ -29,10 +29,12 @@ package
 			name = _name;
 			level = s1; //level
 			stat2 = s2; //
-			gold = s3; //gold
-			maxGold = s4; //max gold
-			HP = s5; //hp
-			maxHP = s6; //max hp
+			
+			maxHP = s3; //gold
+			HP = s4; //max gold
+			
+			gold = s5; //hp
+			maxGold = s6; //max hp
 			
 			reset();
 		}
@@ -55,6 +57,21 @@ package
 		{
 			alive = false;
 			HP = 0;
+		}
+		
+		public function statsList():String
+		{
+			var _list:String = "MONSTER: " + id + ": " + name + "\n";
+			
+			_list += "GOLD=" + gold + "\n";
+			_list += "HP=" + HP + "\n";
+			
+			_list += "LEVEL=" + level + "\n";
+			_list += "STAT2=" + stat2 + "\n";
+			_list += "DISTANCE=" + distance + "\n";
+			_list += "ALIVE=" + alive + "\n";
+			
+			return _list;
 		}
 		
 		

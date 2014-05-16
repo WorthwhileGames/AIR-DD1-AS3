@@ -50,7 +50,7 @@ package
 			row_data = [1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1]; generateRow(row_data);
 			row_data = [1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1]; generateRow(row_data);
 			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1]; generateRow(row_data);
-			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0]; generateRow(row_data);
+			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1]; generateRow(row_data);
 			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,1,1,1,4,1,1,1,1,1,1,1,0,1]; generateRow(row_data);
 			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,6,1]; generateRow(row_data);
 			row_data = [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1]; generateRow(row_data);
@@ -165,9 +165,17 @@ package
 					{
 						result += " ";
 					}
-					else if ((monster.x == j) && (monster.y == i))
+					else if ((monster.id != 0) && (monster.x == j) && (monster.y == i))
 					{
 						result += __symbols[MONSTER_SYMBOL];
+					}
+					else if (hide_secrets && tile.type == 3)
+					{
+						result += "*";
+					}
+					else if (hide_secrets && tile.type == 4)
+					{
+						result += "4";
 					}
 					else if (hide_secrets && tile.type > 1)
 					{
@@ -268,22 +276,35 @@ package
 			var location_y:int;
 			
 			for (var y:int=-3; y<=3; y++)
+			{
 				for (var x:int=-3; x<=3; x++)
 				{
-					if (getTileType(player.x + x, player.y + y) == tile_type)
+					var test_x:int = player.x + x;
+					var test_y:int = player.y + y;
+					var test_type:int = 0;
+					
+					if (isOnMap(test_x, test_y))
 					{
-						located = true;
-						location_x = x;
-						location_y = y;
+						test_type = getTileType(test_x, test_y);
+						WwDebug.instance.msg("  Checking: " + test_x + ", " + test_y);
+						if (getTileType(test_x, test_y) == tile_type)
+						{
+							WwDebug.instance.msg("    Located type: " + test_type + "  at: " + x + ", " + y);
+							located = true;
+							location_x = x;
+							location_y = y;
+						}
 					}
 				}
+			}
+			
 			if (located)
 			{
 				return "THERE IS ONE AT " + location_x + ", " + location_y;
 			}
 			else
 			{
-				return "SORRY.  NOT FOUND";
+				return "SORRY, NOT FOUND";
 			}
 			
 		}
