@@ -243,6 +243,9 @@ package
 			__monsterDB = new DdMonsters();
 			__monster = __monsterDB.getMonsterByID(0);  //no monster
 			
+			__player.inventory.addItem(__itemTypes.item(0));
+			__player.equip(0);
+			
 			DD1_Run();
 			
 			//DEBUG
@@ -832,22 +835,22 @@ package
 				}
 				case 2: //OPEN DOOR
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(openDoor, "openDoor");
 					break;
 				}
 				case 3: //SEARCH FOR TRAPS AND SECRET DOORS
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(search, "search");
 					break;
 				}
 				case 4://SWITCH WEAPON HN HAND
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(chooseWeapon, "chooseWeapon");
 					break;
 				}
 				case 5: //FIGHT
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(Dd3750, "Dd3750");
 					break;
 				}
 				case 6: //LOOK AROUND
@@ -863,12 +866,12 @@ package
 				}
 				case 8: //USE MAGIC
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(useSpells, "useSpells");
 					break;
 				}
 				case 9: //BUY MAGIC
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(Dd9980, "Dd9980");
 					break;
 				}
 				case 10: //PASS
@@ -904,6 +907,24 @@ package
 				{
 					__cheatCount++;
 					print(__player.inventory.inventoryList()); //DEBUG
+					nextAction(Dd1542);
+					break;
+				}
+				case 16: //CHEAT: Clerical Spells
+				{
+					__cheatCount++;
+					print();
+					print(__player.clericSpells.inventoryList()); //DEBUG
+					print();
+					nextAction(Dd1542);
+					break;
+				}
+				case 17: //CHEAT: Spells
+				{
+					__cheatCount++;
+					print();
+					print(__player.spells.inventoryList()); //DEBUG
+					print();
 					nextAction(Dd1542);
 					break;
 				}
@@ -1302,12 +1323,15 @@ package
 			03130 PRINT "DOOR LEFT RIGHT UP OR DOWN"
 			03140 INPUT Q$
 			*/
+			
+			print("DOOR LEFT RIGHT UP OR DOWN");
 			input(onQueryDoorDirection);
 		}
 		
 		private function onQueryDoorDirection(args:Array):void
 		{
-
+			var q:String = args[0];
+			
 			/*
 			03150 IF Q$="LEFT" THEN 03200
 			03155 IF Q$="L" THEN 03200
@@ -1343,6 +1367,53 @@ package
 			03420 GO TO 02450
 
 			*/
+			
+			nextAction(Dd7000, "Dd7000");
+			
+			switch(q)
+			{
+				case "LEFT":
+				{
+					if ((__map.getTileType(__player.x -1, __player.y) == 3) ||(__map.getTileType(__player.x -1, __player.y) == 4))
+					{
+						print("DOOR OPENED!");
+						__map.clearTile(__player.x -1, __player.y);
+					}
+					break;
+				}
+				case "RIGHT":
+				{
+					if ((__map.getTileType(__player.x +1, __player.y) == 3) ||(__map.getTileType(__player.x +1, __player.y) == 4))
+					{
+						print("DOOR OPENED!");
+						__map.clearTile(__player.x +1, __player.y);
+					}
+					break;
+				}
+				case "UP":
+				{
+					if ((__map.getTileType(__player.x, __player.y -1) == 3) ||(__map.getTileType(__player.x, __player.y -1) == 4))
+					{
+						print("DOOR OPENED!");
+						__map.clearTile(__player.x, __player.y -1);
+					}
+					break;
+				}
+				case "DOWN":
+				{
+					if ((__map.getTileType(__player.x, __player.y +1) == 3) ||(__map.getTileType(__player.x, __player.y +1) == 4))
+					{
+						print("DOOR OPENED!");
+						__map.clearTile(__player.x, __player.y +1);
+					}
+					break;
+				}
+					
+				default:
+				{
+					break;
+				}
+			}
 		}
 		
 		private function search():void
@@ -1370,6 +1441,15 @@ package
 			03610 LET Z=1
 			03620 GO TO 03510
 			*/
+			
+			nextAction(Dd7000, "Dd7000");
+			
+			print("SEARCH.........SEARCH...........SEARCH...........");
+			print("TRAPS?");
+			__map.locate(2,__player);
+			print("DOORS?");
+			__map.locate(3,__player);
+			
 		}
 		
 		private function chooseWeapon():void
@@ -1379,11 +1459,15 @@ package
 			03640 PRINT "WHICH WEAPON WILL YOU HOLD, NUM OF WEAPON "
 			03650 INPUT Y
 			*/
+			
+			print("WHICH WEAPON WILL YOU HOLD, NUM OF WEAPON ");
 			input(onQueryWhichWeapon);
 		}
 		
 		private function onQueryWhichWeapon(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
 			
 			/*
 			03660 IF Y=0 THEN 03720
@@ -1396,9 +1480,22 @@ package
 			03730 LET J=Y
 			03740 GO TO 07000
 			*/
+			
+			nextAction(Dd7000, "Dd7000");
+			
+			if (__player.inventory.hasItem(_input))
+			{
+				__player.equip(_input);
+				print("O.K. YOU ARE NOW HOLDING A " + __player.equippedItem.name);
+			}
+			else
+			{
+				print("SORRY YOU DONT HAVE THAT ONE");
+			}
+			
 		}
 		
-		private function fight():void
+		private function Dd3750():void
 		{
 			/*
 			03750 REM FIGHTING BACK
@@ -1418,22 +1515,105 @@ package
 			03890 PRIN'T "IS IT TO HIT OR DISTRACT";
 			03900 INPUT Q$
 			*/
-			input(onQueryHitOrDistract);
+			
+			print("YOUR WEAPON IS: " + __player.equippedItem.name);
+			
+			if (__monster.id ==0)
+			{
+				nextAction(Dd1590, "Dd1590");
+				
+			}
+			else
+			{
+				print(__monster.name)
+				print("HP: " + __monster.HP);
+				
+				switch(__player.equippedItemID)
+				{
+					case 0:
+					{
+						nextAction(Dd4460, "Dd4460");
+						break;
+					}
+					case 1:
+					{
+						
+						break;
+					}
+					case 2:
+					{
+						
+						break;
+					}
+					case 3:
+					{
+						
+						break;
+					}
+					case 4:
+					{
+						
+						break;
+					}
+					case 5:
+					case 6:
+					case 7:
+					case 8:
+					case 9:
+					case 10:
+					case 11:
+					case 12:
+					case 13:
+					case 14:
+					{
+						
+						break;
+					}
+					case 15:
+					{
+						print("FOOD ???.... WELL O.K.");
+						print("IS IT TO HIT OR DISTRACT");
+						input(onQueryHitOrDistract);
+						break;
+					}
+						
+					default:
+					{
+						break;
+					}
+				}
+			}
 		}
 		
 		private function onQueryHitOrDistract(args:Array):void
 		{
+			var q:String = args[0];
+			
 			/*
 			03910 IF Q$="HIT" THEN 04330
 			03920 PRINT "THROW A-A=VE,B-BELOW,L-LEFT,OR R-RIGHT OF THE MONSTER";
 			03930 LET Z5=0
 			03940 INPUT Q$
 			*/
-			input(onQueryThrowDirection);
+			
+			if (q == "HIT" || q == "H")
+			{
+				nextAction(Dd4330, "Dd4330")
+			}
+			else
+			{
+				print("THROW A-ABOVE, B-BELOW, L-LEFT, OR R-RIGHT OF THE MONSTER");
+				input(onQueryThrowDirection); //3950
+			}
+			
+			
 		}
 		
+		//3950
 		private function onQueryThrowDirection(args:Array):void
 		{
+			var q:String = args[0];
+			
 			/*
 			03950 IF Q$="B" THEN 04010
 			03960 IF Q$="A" THEN 04040
@@ -1473,9 +1653,83 @@ package
 			04300 LET B(K,6)=0
 			04310 GO TO 07000
 			04320 GO TO 04150
+			*/
+			
+			var target_x:int = 0;
+			var target_y:int = 0;
+			
+			switch(q)
+			{
+				case "B":
+				{
+					target_x = 0;
+					target_y = -1;
+					break;
+				}
+				case "A":
+				{
+					target_x = 0;
+					target_y = 1;
+					break;
+				}
+				case "L":
+				{
+					target_x = -1;
+					target_y = 0;
+					break;
+				}
+				case "R":
+				{
+					target_x = 1;
+					target_y = 0;
+					break;
+				}
+				default:
+				{
+					break;
+				}
+			}
+			
+			if (__map.getTileType(__monster.x + target_x, __monster.y + target_x) == 0)
+			{
+				print("MONSTER MOVED BACK");
+				__monster.x += target_x;
+				__monster.y += target_y;
+				__player.dropEquippedItem();
+			}
+			else if (__map.getTileType(__monster.x + target_x, __monster.y + target_x) == 2)
+			{
+				print("GOOD WORK THE MONSTER FELL INTO A TRAP AND IS DEAD");
+				__monster.alive = false;
+				__monster.HP = 0;
+			}
+			
+			nextAction(Dd7000, "Dd7000");
+				
+		}
+
+		private function Dd4460():void
+		{
+			/*
+			04460 REM FISTS
+			04470 PRINT "DO YOU REALIZE YOU ARE BARE HANDED"
+			04480 PRINT "DO YOU WANT TO MAKE ANOTHER CHOICE";
+			04490 INPUT Q$
+			*/
+			
+			print("DO YOU REALIZE YOU ARE BARE HANDED");
+			print("DO YOU WANT TO MAKE ANOTHER CHOICE");
+			input(onQueryChooseAnotherWeapon);
+			
+		}
+		
+		private function Dd4330():void
+		{
+			/*
 			04330 IF INT(RND(0)*20)+1=20 THEN 04380
 			04340 IF INT(RND(0)*20)+1>B(K,2)-C(2)/3 THEN 04410
 			04350 IF INT(RND(0)*20)+1>10-C(2)/3 THEN 04440
+			
 			04360 PRINT "TOTAL MISS"
 			04370 GO TO 04150
 			04380 PRINT "DIRECT HIT"
@@ -1487,18 +1741,35 @@ package
 			04430 GO TO 04150
 			04440 PRINT "YOU HIT HIM BUT NOT GOOD ENOUGH"
 			04450 GO TO 04150
-			
-			04460 REM FISTS
-			04470 PRINT "DO YOU REALIZE YOU ARE BARE HANDED"
-			04480 PRINT "DO YOU WANT TO MAKE ANOTHER CHOICE";
-			04490 INPUT Q$
 			*/
-			input(onQueryChooseAnotherWeapon);
+			var roll:int = DdRoll.D(20) + 1;
 			
+			if (roll == 20)
+			{
+				print("DIRECT HIT");
+				__monster.HP -= __player.STR/6;
+			}
+			else if (roll > (__monster.stat2 - (__player.DEX/3)))
+			{
+				print("HIT");
+				__monster.HP -= __player.STR/8;
+			}
+			else if (roll > (10 - __player.DEX/3))
+			{
+				print("YOU HIT HIM BUT NOT GOOD ENOUGH");
+			}
+			else
+			{
+				print("TOTAL MISS");
+			}
+			
+			__player.dropEquippedItem();
+			nextAction(Dd7000, "Dd7000");
 		}
 		
 		private function onQueryChooseAnotherWeapon(args:Array):void
 		{
+			var q:String = args[0];
 			
 			/*
 			04500 IF Q$="NO" THEN 04520
@@ -1519,15 +1790,44 @@ package
 			04640 PRINT "GOOD A HIT"
 			04650 LET B(K,3)=B(K,3)-INT(C(1)/6)
 			04660 GO TO 01590
+			*/
 			
+			nextAction(Dd1590, "Dd1590");
+			
+			if (q == "NO")
+			{
+				print("O.K. PUNCH BITE SCRATCH HIT ........");
+				if (__map.isMonsterAdjacent(__player, __monster))
+				{
+					if (DdRoll.D(20)+1 > __monster.stat2)
+					{
+						print("GOOD A HIT");
+						__monster.HP -= __player.STR/6;
+					}
+					else
+					{
+						print("TERRIBLE NO GOOD");
+						nextAction(Dd7000);
+					}
+				}
+				else
+				{
+					print("NO GOOD ONE");
+				}
+			}
+			else
+			{
+				//OK
+			}
+		}
+		
+		private function Dd4680():void
+		{
+			/*
 			04670 REM
 			04680 PRINT "SWING"
 			
-			
-			*/		
-			Dd8410(); //04690 GOSUB 08410
-			
-			/*
+			04690 GOSUB 08410
 			
 			04700 IF R1<2 THEN 04730
 			04710 PRINT "HE IS OUT OF RANGE"
@@ -1545,6 +1845,44 @@ package
 			04830 GO TO 01590
 			04840 PRINT "MISSED TOTALY"
 			04850 GO TO 07000
+			*/
+			
+			nextAction(Dd1590, "Dd1590");
+			
+			print("SWING");
+			Dd8410();
+			if (__monster.distance < 2)
+			{
+				if (__player.attackEffectiveness == 0)
+				{
+					print("MISSED TOTALLY");
+					nextAction(Dd7000, "Dd7000");
+				}
+				else if (__player.attackEffectiveness == 1)
+				{
+					print("NOT GOOD ENOUGH");
+				}
+				else if (__player.attackEffectiveness == 2)
+				{
+					print("GOOD HIT");
+					__monster.HP -= __player.STR * 4/5;
+				}
+				else if (__player.attackEffectiveness == 3)
+				{
+					print("CRITICAL HIT");
+					__monster.HP -= __player.STR/2;
+				}
+			}
+			else
+			{
+				print("HE IS OUT OF RANGE");
+				nextAction(Dd7000, "Dd7000");
+			}
+		}
+		
+		private function Dd4860():void
+		{
+			/*
 			04860 PRINT "SWHNG"
 			04870 GOCUB 08410
 			04880 IF R1<2.1 THAN 04910
@@ -1563,18 +1901,53 @@ package
 			05010 GO TO 01590
 			05020 PRINT "MISSED TOTALY"
 			05030 GO TO 07000
+			*/
+			
+			nextAction(Dd1590, "Dd1590");
+			
+			print("SWING");
+			Dd8410();
+			if (__monster.distance < 2.1)
+			{
+				if (__player.attackEffectiveness == 0)
+				{
+					print("MISSED TOTALLY");
+					nextAction(Dd7000, "Dd7000");
+				}
+				else if (__player.attackEffectiveness == 1)
+				{
+					print("HIT BUT NOT WELL ENOUGH");
+				}
+				else if (__player.attackEffectiveness == 2)
+				{
+					print("HIT");
+					__monster.HP -= __player.STR * 5/7;
+				}
+				else if (__player.attackEffectiveness == 3)
+				{
+					print("CRITICAL HIT");
+					__monster.HP -= __player.STR;
+				}
+			}
+			else
+			{
+				print("HE IS OUT OF RANGE");
+				nextAction(Dd7000, "Dd7000");
+			}
+		}
+		
+		private function Dd5040():void
+		{
+			
+			/*
 			05040 FOR M=1 TO X
 			05050 IF W(M)=3 THEN 05090		// CALL DD1_08410();
 			05060 NEXT M
 			05070 PRINT"YOU DONT HAVE A DGGER"
 			05080 GO TO 07000
 			
-			*/
-			
-			Dd8410(); //05090 GOSUB 08410
-			
-			/*
-			
+			05090 GOSUB 08410
+						
 			05100 IF R1>5 THEN 04710
 			05110 IF R2=0 THEN 05200
 			05120 IF R2=1 THEN 05220
@@ -1592,13 +1965,58 @@ package
 			05240 PRINT "HIT"
 			05250 LET B(K,3)=B(K,3)-INT(C(1)/4)
 			05260 GO TO 05160
-			05270 PRINT "SWING"
-			
 			*/
 			
-			Dd8410(); //05280 GOSUB 08410
+			nextAction(Dd1590, "Dd1590");
 			
+			if (__player.inventory.hasItem(3))
+			{
+				Dd8410();
+				if (__monster.distance <= 5)
+				{
+					if (__player.attackEffectiveness == 0)
+					{
+						print("MISSED TOTALLY");
+						nextAction(Dd7000, "Dd7000");
+					}
+					else if (__player.attackEffectiveness == 1)
+					{
+						print("HIT BUT NO DAMAGE");
+					}
+					else if (__player.attackEffectiveness == 2)
+					{
+						print("HIT");
+						__monster.HP -= __player.STR/4;
+					}
+					else if (__player.attackEffectiveness == 3)
+					{
+						print("CRITICAL HIT");
+						__monster.HP -= __player.STR * 3/10;
+						if (__monster.distance >= 2)
+						{
+							__player.dropEquippedItem();
+						}
+					}
+				}
+				else
+				{
+					print("HE IS OUT OF RANGE");
+					nextAction(Dd7000, "Dd7000");
+				}
+			}
+			else
+			{
+				print("YOU DONT HAVE A DAGGER");
+				nextAction(Dd7000, "Dd7000");
+			}
+		}
+		
+		private function Dd5270():void
+		{			
 			/*
+			05270 PRINT "SWING"
+			
+			05280 GOSUB 08410
 			
 			05290 IF P0<2 THEN 04720
 			05300 GO TO 04710
@@ -1615,11 +2033,42 @@ package
 			05410 GO TO 01590
 			05420 PRINT "MISS"
 			05430 GO TO 07000
-
 			*/
+			
+			nextAction(Dd1590, "Dd1590");
+			
+			print("SWING");
+			Dd8410();
+			if (__monster.distance < 2)
+			{
+				if (__player.attackEffectiveness == 0)
+				{
+					print("MISS");
+					nextAction(Dd7000, "Dd7000");
+				}
+				else if (__player.attackEffectiveness == 1)
+				{
+					print("HIT BUT NO DAMAGE");
+				}
+				else if (__player.attackEffectiveness == 2)
+				{
+					print("HIT");
+					__monster.HP -= __player.STR * 5/11;
+				}
+				else if (__player.attackEffectiveness == 3)
+				{
+					print("CRITICAL HIT");
+					__monster.HP -= __player.STR * 4/9;
+				}
+			}
+			else
+			{
+				print("HE IS OUT OF RANGE");
+				nextAction(Dd7000, "Dd7000");
+			}
 		}
 		
-		private function useWeapon():void
+		private function Dd5440():void  //use weapon
 		{
 			/*
 			05440 REM
@@ -1628,11 +2077,7 @@ package
 			05470 NEXT M
 			05480 PRINT "NO WEAPON FOUND"
 			05490 GO TO 01590
-			*/
-			
-			Dd8410(); //05500 GOSUB 08410
-
-			/*
+			05500 GOSUB 08410
 			05510 IF J=5 THEN 05760
 			05520 IF J=6 THEN 05800
 			05530 IF J=7 THEN 05840
@@ -1645,11 +2090,76 @@ package
 			05600 PRINT "AS A CLUB OR SIGHT";
 			05610 INPUT Q$
 			*/
-			input(onQueryClubOrSight);
+			
+			Dd8410();
+			
+			if (__player.equippedItemID == 0)
+			{
+				print("NO WEAPON FOUND");
+				nextAction(Dd1590, "Dd1590");
+			}
+			else if (__player.equippedItemID == 14) //silver cross
+			{
+				print("AS A CLUB OR SIGHT");
+				input(onQueryClubOrSight);
+			} 
+			else
+			{
+				
+				if (__monster.distance > __player.equippedItem.range)
+				{
+					print("HE IS OUT OF RANGE");
+					nextAction(Dd7000, "Dd7000");
+				}
+				else
+				{
+					if (__player.attackEffectiveness == 0)
+					{
+						print("MISS");
+						nextAction(Dd7000, "Dd7000");
+					}
+					else if (__player.attackEffectiveness == 1)
+					{
+						print("HIT BUT NO DAMAGE");
+					}
+					else if (__player.attackEffectiveness == 2)
+					{
+						print("HIT");
+						__monster.HP -= __player.STR * __player.equippedItem.hitMultiplier;
+					}
+					else if (__player.attackEffectiveness == 3)
+					{
+						print("CRITICAL HIT");
+						__monster.HP -= __player.STR * __player.equippedItem.criticalHitMultiplier;
+					}
+					
+					if (__player.equippedItemID == 14)
+					{
+						nextAction(Dd7000, "Dd7000");
+					}
+					else
+					{
+						__player.dropEquippedItem();
+						if (__monster.distance >0)
+						{
+							nextAction(Dd1590, "Dd1590");
+						}
+						else
+						{
+							nextAction(Dd7000, "Dd7000");
+						}
+					}
+				}
+			}
+				
+			
+			
 		}
 		
 		private function onQueryClubOrSight(args:Array):void
 		{
+			var q:String = args[0];
+			
 			/*
 			05620 IF Q$="SIGHT" THEN 05650
 			05630 IF J=14 THEN 06120
@@ -1658,59 +2168,10 @@ package
 			05660 PRINT "FAILED"
 			05670 GO TO 07000
 			05680 PRINT "THE MONSTER IS HURT"
-			05690 LET R5=1/6
-			05700 IF K=2 THEN 06200
-			05710 IF K=10 THEN 06200
-			05720 IF K=4 THEN 06200
-			05730 GOTO 06260
-			05740 IF INT(RND(0)*0)>0 THEN 06260
-			05750 GO TO 06200
-			05760 LET R3=10
-			05770 LET R4=3/7
-			05780 LET R5=5/11
-			05790 GO TO 06160
-			05800 LET R3=15
-			05810 LET R4=3/7
-			05820 LET R5=5/11
-			05821 FOR Z=1 TO 100
-			05822 IF W(Z)=7 THEN 5825
-			05823 NEXT Z
-			05824 GO TO 6280
-			05825 J=7
-			05826 W(Z)=0
-			05830 GO TO 06160
-			05840 LET R3=1.5
-			05850 LET R4=1/7
-			05860 LET R5=1/5
-			05870 GO TO 06160
-			05880 LET R3=4
-			05890 LET R4=1/10
-			05900 LET R5=1/8
-			05910 GO TO 06160
-			05920 LET R3=4
-			05930 LET R4=1/7
-			05940 LET R5=1/6
-			05950 GO TO 06160
-			05960 LET R3=3
-			05970 LET R4=1/8
-			05980 LET R5=1/5
-			05990 GO TO 06160
-			06000 LET R3=5
-			06010 LETR4=1/9
-			06020 LET R5=1/6
-			06030 GO TO 06160
-			06040 LET R3=8
-			06050 LET R4=1/9
-			06060 LET R5=1/4
-			06070 GO TO 06160
-			06080 LET R3=6
-			06090 LET R4=1/3
-			06100 LET R5=2/3
-			06110 GO TO 06160
-			06120 LET R3=1.5
-			06130 LET R4=1/3
-			06140 LET R5=1/2
-			06150 GO TO 06160
+			*/
+			
+			
+			/*
 			06160 IF R1>R3 THEN 04710
 			06170 IF R2=0 THEN 06280
 			06180 IF R2=1 THEN 06260
@@ -1736,6 +2197,77 @@ package
 			06370 IF R2>0 THEN 01590
 			06380 GO TO 07000
 			*/
+			
+			if (q == "SIGHT")
+			{
+				if (__monster.distance < 10)
+				{
+					print("THE MONSTER IS HURT");
+					if ((__monster.id == 2) || (__monster.id == 10) || (__monster.id == 4))
+					{
+						print("CRITICAL HIT");
+						__monster.HP -= __player.STR * __player.equippedItem.criticalHitMultiplier;
+						__player.dropEquippedItem();
+						if (__monster.distance >0)
+						{
+							nextAction(Dd1590, "Dd1590");
+						}
+						else
+						{
+							nextAction(Dd7000, "Dd7000");
+						}
+					}
+					else
+					{
+						print("HIT BUT NO DAMAGE");
+					}
+				}
+				else
+				{
+					print("FAILED");
+					nextAction(Dd7000, "Dd7000");
+				}
+			}
+			else
+			{
+				if (__monster.distance > __player.equippedItem.range)
+				{
+					print("HE IS OUT OF RANGE");
+					nextAction(Dd7000, "Dd7000");
+				}
+				else
+				{
+					if (__player.attackEffectiveness == 0)
+					{
+						print("MISS");
+						nextAction(Dd7000, "Dd7000");
+					}
+					else if (__player.attackEffectiveness == 1)
+					{
+						print("HIT BUT NO DAMAGE");
+					}
+					else if (__player.attackEffectiveness == 2)
+					{
+						print("HIT");
+						__monster.HP -= __player.STR * __player.equippedItem.hitMultiplier;
+					}
+					else if (__player.attackEffectiveness == 3)
+					{
+						print("CRITICAL HIT");
+						__monster.HP -= __player.STR * __player.equippedItem.criticalHitMultiplier;
+					}
+					
+					__player.dropEquippedItem();
+					if (__monster.distance >0)
+					{
+						nextAction(Dd1590, "Dd1590");
+					}
+					else
+					{
+						nextAction(Dd7000, "Dd7000");
+					}
+				}
+			}
 		}
 		
 		private function drawMap():void
@@ -1766,6 +2298,62 @@ package
 			06600 GO TO 06510
 			*/
 		}
+		
+		/*  Item stats table - now properties of DdItems
+		05690 LET R5=1/6
+		05700 IF K=2 THEN 06200
+		05710 IF K=10 THEN 06200
+		05720 IF K=4 THEN 06200
+		05730 GOTO 06260
+		05740 IF INT(RND(0)*0)>0 THEN 06260
+		05750 GO TO 06200
+		05760 LET R3=10
+		05770 LET R4=3/7
+		05780 LET R5=5/11
+		05790 GO TO 06160
+		05800 LET R3=15
+		05810 LET R4=3/7
+		05820 LET R5=5/11
+		05821 FOR Z=1 TO 100
+		05822 IF W(Z)=7 THEN 5825
+		05823 NEXT Z
+		05824 GO TO 6280
+		05825 J=7
+		05826 W(Z)=0
+		05830 GO TO 06160
+		05840 LET R3=1.5
+		05850 LET R4=1/7
+		05860 LET R5=1/5
+		05870 GO TO 06160
+		05880 LET R3=4
+		05890 LET R4=1/10
+		05900 LET R5=1/8
+		05910 GO TO 06160
+		05920 LET R3=4
+		05930 LET R4=1/7
+		05940 LET R5=1/6
+		05950 GO TO 06160
+		05960 LET R3=3
+		05970 LET R4=1/8
+		05980 LET R5=1/5
+		05990 GO TO 06160
+		06000 LET R3=5
+		06010 LETR4=1/9
+		06020 LET R5=1/6
+		06030 GO TO 06160
+		06040 LET R3=8
+		06050 LET R4=1/9
+		06060 LET R5=1/4
+		06070 GO TO 06160
+		06080 LET R3=6
+		06090 LET R4=1/3
+		06100 LET R5=2/3
+		06110 GO TO 06160
+		06120 LET R3=1.5
+		06130 LET R4=1/3
+		06140 LET R5=1/2
+		06150 GO TO 06160
+		*/
 		
 		private function saveDungeon():void
 		{
@@ -2535,11 +3123,49 @@ package
 			08770 INPUT Q
 			*/
 			
-			input(onQuerySpellNumCleric);
+			print("MAGIC");
+			if (__player.equippedItemID != 0)
+			{
+				print("YOU CAN'T USE MAGIC WITH A WEAPON IN HAND");
+				nextAction(Dd7000, "Dd7000");
+			}
+			else
+			{
+				switch(__player.classification)
+				{
+					case "FIGHTER":
+					{
+						print("YOU CAN'T USE MAGIC. YOU'RE NOT A M.U.");
+						nextAction(Dd7000, "Dd7000");
+						break;
+					}
+					case "CLERIC":
+					{
+						print("CLERICAL SPELL #:");
+						input(onQuerySpellNumCleric);
+						break;
+					}
+					case "WIZARD":
+					{
+						print("SPELL #:");
+						input(onQuerySpellNumWizard);
+						break;
+					}	
+					default:
+					{
+						nextAction(Dd1590, "Dd1590");
+						break;
+					}
+				}
+			}
+			
+			
 		}
 		
 		private function onQuerySpellNumCleric(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
 			
 			/*
 			08780 FOR M=1 TO X1
@@ -2600,11 +3226,90 @@ package
 			09310 PRINT "SPELL #";
 			09320 INPUT Q
 			*/
-			input(onQuerySpellNumWizard);
+			
+			nextAction(Dd7000, "Dd7000");
+			
+			if (__player.clericSpells.hasItem(_input))
+			{
+				switch(_input)
+				{
+					case 1:
+					{
+						if (DdRoll.D(3) > 1)
+						{
+							print("FAILED");
+						}
+						else
+						{
+							print("DONE");
+							__monster.kill();
+						}
+						break;
+					}
+					case 2:
+					{
+						print("DONE");
+						__monster.HP -= 4;
+						break;
+					}
+					case 3:
+					{
+						print("DONE");
+						__player.CON +=3;
+						break;
+					}
+					case 4:
+					{
+						print(__map.locate(2, __player));
+						break;
+					}
+					case 5:
+					{
+						print("DONE");
+						__monster.HP -= 2;
+						break;
+					}
+					case 6:
+					{
+						print("DONE");
+						__monster.HP -= 6;
+						break;
+					}
+					case 7:
+					{
+						print("DONE");
+						__player.CON +=3;
+						break;
+					}
+					case 8:
+					{
+						print(__map.locate(3, __player));
+						break;
+					}
+					case 9:
+					{
+						print("WHOA!");
+						break;
+					}
+						
+					default:
+					{
+						break;
+					}
+				}
+				__player.dropEquippedClericalSpell();
+			}
+			else
+			{
+				print("YOU DONT HAVE THAT SPELL");
+			}
 		}
 		
 		private function onQuerySpellNumWizard(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			09330 FOR M=1 TO X3
 			09340 IF Q=X4(M) THEN 09390
@@ -2656,6 +3361,84 @@ package
 			09800 PRINT "INPUT CO-ORDINATES";
 			09810 INPUT M,N
 			*/
+			
+			nextAction(Dd7000, "Dd7000");
+			
+			if (__player.spells.hasItem(_input))
+			{
+				switch(_input)
+				{
+					case 1:
+					{
+						print("FIZZLE!");  //should get a throw direction...
+						__monster.HP -= 1;
+						break;
+					}
+					case 2:
+					{
+						if (DdRoll.D(3) > 1)
+						{
+							print("DONE");
+							__monster.kill();
+						}
+						else
+						{
+							print("FAILED");
+						}
+						break;
+					}
+					case 3:
+					{
+						print(__map.locate(2, __player));
+						break;
+					}
+					case 4:
+					{
+						print(__map.locate(2, __player))
+						break;
+					}
+					case 5:
+					{
+						print("ZINGG!");
+						__monster.HP -= 2;  //should ask for coords, etc.
+						break;
+					}
+					case 6:
+					{
+						print("DONE");
+						__monster.HP -= 6;
+						break;
+					}
+					case 7:
+					{
+						__monster.HP -= (6 + DdRoll.D(11));
+						print("M-HP= " +__monster.HP);
+						break;
+					}
+					case 8:
+					{
+						__monster.HP -= (9 + DdRoll.D(11));
+						print("M-HP= " +__monster.HP);
+						break;
+					}
+					case 9:
+					{
+						print(__map.locate(3, __player));
+						break;
+					}
+						
+					default:
+					{
+						break;
+					}
+				}
+				__player.dropEquippedClericalSpell();
+			}
+			else
+			{
+				print("YOU DONT HAVE THAT SPELL");
+			}
+			
 			input(onQuerySpellCoordinates1);
 		}
 		
@@ -2687,6 +3470,13 @@ package
 			09960 LET B(K,3)=B(K,3)-Q-INT(RND(0)*11)
 			09965 PRINT "M-HP=";B(K,3)
 			09970 GO TO 07000
+			*/
+		}
+		
+		private function Dd9980():void
+		{
+			
+			/*
 			09980 IF C$(0)="CLERIC" THEN 10020
 			09990 IF C$(0)="WIZARD" THEN 10360
 			10000 PRINT "YOU CANT BUY ANY"
@@ -2695,11 +3485,32 @@ package
 			10030 INPUT Q$
 			*/
 			
+			
+			
+			if (__player.classification == "CLERIC")
+			{
+				print("DO YOU KNOW THE CHOICES?");
+				input(onQueryDoYouKnowTheChoicesCleric);
+				
+			} else if (__player.classification == "WIZARD")
+			{
+				print("DO YOU KNOW THE SPELLS?");
+				input(onQueryDoYouKnowTheChoicesWizard);
+			}
+			else
+			{
+				print("YOU CANT BUY ANY");
+				nextAction(Dd1590, "Dd1590");
+			}
+			
 			input(onQueryDoYouKnowTheChoicesCleric);
 		}
 		
 		private function onQueryDoYouKnowTheChoicesCleric(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			10040 IF Q$="YES" THEN 10100
 			10050 PRINT "1-KILL-500  5-MAG. MISS. #1-100"
@@ -2709,12 +3520,20 @@ package
 			10090 PRINT "INPUT # WANTED   NEG.NUM.TO STOP";
 			10100 INPUT Q
 			*/
+			print("1-KILL-500  5-MAG. MISS. #1-100");
+			print("2-MAG. MISS. #2-200  6-MAG. MISS. #3-300");
+			print("3-CURE LHGHT #1-200  7-CURE LIGHT #2-1000");
+			print("4-FIND ALL TRAPS-200  8-FIND ALL S.DOORS-200");
+			print("INPUT # WANTED   NEG.NUM.TO STOP");
 			
 			input(onQueryChooseSpellCleric);
 		}
 		
 		private function onQueryChooseSpellCleric(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			10110 LET X5(1)=500
 			10120 LET X5(2)=200
@@ -2745,11 +3564,31 @@ package
 			10370 INPUT Q$
 			*/
 			
-			input(onQueryDoYouKnowTheChoicesWizard);
+			if ((_input > 1) && (_input <= 8))
+			{
+				var spell:DdSpell = __spellTypesCleric.item(_input);
+				if (__player.GOLD - spell.cost > 0)
+				{
+					print("IT IS YOURS");
+					__player.clericSpells.addItem(spell);
+					__player.GOLD -= spell.cost;
+				}
+				
+				input(onQueryDoYouKnowTheChoicesCleric);
+			}
+			else
+			{
+				print(__player.clericSpells.inventoryList());
+				nextAction(Dd1590, "Dd1590");
+			}
+			
 		}
 		
 		private function onQueryDoYouKnowTheChoicesWizard(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			10380 IF Q$="YES" THEN 10450
 			10390 PRINT "1-PUSH-75   6-M. M. #1-100"
@@ -2761,11 +3600,20 @@ package
 			10450 INPUT Q
 			*/
 			
+			print("1-PUSH-75   6-M. M. #1-100");
+			print("2-KIHL-500  7-M. M. #2-200");
+			print("3-FIND TRAPS-200  8-M. M. #3-300");
+			print("4-TELEPORT-750  9-FIND S.DOORS-200");
+			print("5-CHANGE 1+0-600  10-CHANGE 0+1-600");
+			print("#OF ONE YOU WANT  NEG.NUM.TO STOP");
 			input(onQueryChooseSpellWizard);
 		}
 		
 		private function onQueryChooseSpellWizard(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			10460 LET X6(1)=75
 			10470 LET X6(2)=500
@@ -2794,6 +3642,24 @@ package
 			10700 NEXT M
 			10710 GO TO 01590
 			*/
+			
+			if ((_input > 1) && (_input <= 10))
+			{
+				var spell:DdSpell = __spellTypesWizard.item(_input);
+				if (__player.GOLD - spell.cost > 0)
+				{
+					print("IT IS YOURS");
+					__player.spells.addItem(spell);
+					__player.GOLD -= spell.cost;
+				}
+				
+				input(onQueryDoYouKnowTheChoicesWizard);
+			}
+			else
+			{
+				print(__player.spells.inventoryList());
+				nextAction(Dd1590, "Dd1590");
+			}
 		}
 		
 		private function printFullMap():void

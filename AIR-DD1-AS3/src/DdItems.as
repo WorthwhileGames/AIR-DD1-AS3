@@ -35,7 +35,7 @@ package
 			var _item:DdItem;
 			
 			//name:String, price:int, range:Number, hit_multiplier:Number, critical_hit_multiplier:Number
-			_item = new DdItem(0, "NA", 0, 0, 0, 0);
+			_item = new DdItem(0, "BARE HANDS", 0, 0, 0, 0);
 			__items[0] = _item;
 			
 			_item = new DdItem(1, "SWORD", 10, 0, 0, 0);

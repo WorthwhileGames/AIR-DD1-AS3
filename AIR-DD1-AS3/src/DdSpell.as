@@ -8,26 +8,16 @@ package
 	 */
 	public class DdSpell
 	{
-		private var __name:String;
-		private var __cost:int;
+		public var id:int;
+		public var name:String;
+		public var cost:int;
 		
 		
-		public function DdSpell(name:String, cost:int)
+		public function DdSpell(_id:int, _name:String, _cost:int)
 		{
-			__name = name;
-			__cost = cost;
+			id = _id;
+			name = _name;
+			cost = _cost;
 		}
-
-		public function get name():String
-		{
-			return __name;
-		}
-
-		public function get cost():int
-		{
-			return __cost;
-		}
-
-
 	}
 }

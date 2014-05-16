@@ -6,11 +6,11 @@ package
 	 * @author Andrew Rapo (andrew@worthwhilegames.org)
 	 * @license MIT
 	 */
-	public class DdInventory
+	public class DdSpellInventory
 	{
 		private var __inventory:Array;
 		
-		public function DdInventory()
+		public function DdSpellInventory()
 		{
 			__inventory = new Array();
 		}
@@ -20,21 +20,21 @@ package
 			__inventory = new Array(16);
 		}
 		
-		public function addItem(item:DdItem):void
+		public function addItem(item:DdSpell):void
 		{
 			__inventory.push(item);
 		}
 		
 		public function inventoryList():String
 		{
-			var _list:String = "EQUIMPENT:\n";
+			var _list:String = "YOUR SPELLS ARE:\n";
 			
 			for (var i:int=0; i<__inventory.length; i++)
 			{
-				var item:DdItem = __inventory[i];
+				var item:DdSpell = __inventory[i];
 				if (item.id != 0)
 				{
-					_list += (i + 1) + "\t" + item.name + "\n";
+					_list += (i + 1) + ") " + item.id + ":\t" + item.name + "\n";
 				}
 			}
 			
@@ -46,9 +46,9 @@ package
 			return __inventory.length;
 		}
 		
-		public function getItemByID(_id:int):DdItem
+		public function getItemByID(_id:int):DdSpell
 		{
-			var item:DdItem = null;
+			var item:DdSpell = null;
 			
 			outer: for (var i:int=0; i<__inventory.length; i++)
 			{
@@ -68,14 +68,14 @@ package
 			
 			for (var i:int=0; i<__inventory.length; i++)
 			{
-				var item:DdItem = __inventory[i];
+				var item:DdSpell = __inventory[i];
 				if (item.id == id) result = true;
 			}
 			
 			return result;
 		}
 		
-		public function dropItem(item:DdItem):void
+		public function dropItem(item:DdSpell):void
 		{
 			var item_index:int = __inventory.indexOf(item);
 			

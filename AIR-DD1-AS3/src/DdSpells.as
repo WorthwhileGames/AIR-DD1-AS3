@@ -31,14 +31,15 @@ package
 				10100 INPUT Q
 				*/
 				
-				_spell = new DdSpell("KILL", 500); __spells.push(_spell);
-				_spell = new DdSpell("MAG. MISS. #2", 200); __spells.push(_spell);
-				_spell = new DdSpell("CURE LHGHT #1", 200); __spells.push(_spell);
-				_spell = new DdSpell("FIND ALL TRAPS", 200); __spells.push(_spell);
-				_spell = new DdSpell("MAG. MISS. #1", 100); __spells.push(_spell);
-				_spell = new DdSpell("MAG. MISS. #3", 300); __spells.push(_spell);
-				_spell = new DdSpell("CURE LIGHT #2", 1000); __spells.push(_spell);
-				_spell = new DdSpell("FIND ALL S.DOORSILL", 200); __spells.push(_spell);
+				_spell = new DdSpell(0, "NONE", 0); __spells.push(_spell);
+				_spell = new DdSpell(1, "KILL", 500); __spells.push(_spell);
+				_spell = new DdSpell(2, "MAG. MISS. #2", 200); __spells.push(_spell);
+				_spell = new DdSpell(3, "CURE LHGHT #1", 200); __spells.push(_spell);
+				_spell = new DdSpell(4, "FIND ALL TRAPS", 200); __spells.push(_spell);
+				_spell = new DdSpell(5, "MAG. MISS. #1", 100); __spells.push(_spell);
+				_spell = new DdSpell(6, "MAG. MISS. #3", 300); __spells.push(_spell);
+				_spell = new DdSpell(7, "CURE LIGHT #2", 1000); __spells.push(_spell);
+				_spell = new DdSpell(8, "FIND ALL S.DOORSILL", 200); __spells.push(_spell);
 			}
 			else if (_type == WIZARD_TYPE)
 			{
@@ -53,19 +54,38 @@ package
 				10450 INPUT Q
 				*/
 				
-				_spell = new DdSpell("PUSH", 75); __spells.push(_spell);
-				_spell = new DdSpell("KIHL", 500); __spells.push(_spell);
-				_spell = new DdSpell("FIND", 200); __spells.push(_spell);
-				_spell = new DdSpell("TELEPORT", 750); __spells.push(_spell);
-				_spell = new DdSpell("CHANGE 1+0", 600); __spells.push(_spell);
-				_spell = new DdSpell("M. M. #1", 100); __spells.push(_spell);
-				_spell = new DdSpell("M. M. #2", 200); __spells.push(_spell);
-				_spell = new DdSpell("M. M. #3", 300); __spells.push(_spell);
-				_spell = new DdSpell("FIND S.DOORS", 200); __spells.push(_spell);
-				_spell = new DdSpell("CHANGE 0+1", 600); __spells.push(_spell);
+				_spell = new DdSpell(0, "NONE", 0); __spells.push(_spell);
+				_spell = new DdSpell(1,"PUSH", 75); __spells.push(_spell);
+				_spell = new DdSpell(2,"KIHL", 500); __spells.push(_spell);
+				_spell = new DdSpell(3,"FIND", 200); __spells.push(_spell);
+				_spell = new DdSpell(4,"TELEPORT", 750); __spells.push(_spell);
+				_spell = new DdSpell(5,"CHANGE 1+0", 600); __spells.push(_spell);
+				_spell = new DdSpell(6,"M. M. #1", 100); __spells.push(_spell);
+				_spell = new DdSpell(7,"M. M. #2", 200); __spells.push(_spell);
+				_spell = new DdSpell(8,"M. M. #3", 300); __spells.push(_spell);
+				_spell = new DdSpell(9,"FIND S.DOORS", 200); __spells.push(_spell);
+				_spell = new DdSpell(10,"CHANGE 0+1", 600); __spells.push(_spell);
 				
 				
 			}
+		}
+		
+		public function item(index:int):DdSpell
+		{
+			return __spells[index];
+		}
+		
+		public function itemList():String
+		{
+			var _list:String = "";
+			
+			for (var i:int=1; i<=15; i++)
+			{
+				var item:DdSpell = __spells[i];
+				_list += (i) + ")\t" + item.id + ": " + item.name + "\t" + item.cost + "\n";
+			}
+			
+			return _list
 		}
 	}
 }

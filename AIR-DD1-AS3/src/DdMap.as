@@ -244,5 +244,48 @@ package
 				return false;
 			}
 		}
+		
+		public function isMonsterAdjacent(player:DdPlayer, monster:DdMonster):Boolean
+		{
+			var result:Boolean = false;
+			
+			for (var y:int=-1; y<=1; y++)
+				for (var x:int=-1; x<=1; x++)
+				{
+					if ((monster.x == player.x + x) && (monster.y == player.y + y))
+					{
+						result = true;
+					}
+				}
+			
+			return result;
+		}
+		
+		public function locate(tile_type:int, player:DdPlayer):String
+		{
+			var located:Boolean = false;
+			var location_x:int;
+			var location_y:int;
+			
+			for (var y:int=-3; y<=3; y++)
+				for (var x:int=-3; x<=3; x++)
+				{
+					if (getTileType(player.x + x, player.y + y) == tile_type)
+					{
+						located = true;
+						location_x = x;
+						location_y = y;
+					}
+				}
+			if (located)
+			{
+				return "THERE IS ONE AT " + location_x + ", " + location_y;
+			}
+			else
+			{
+				return "SORRY.  NOT FOUND";
+			}
+			
+		}
 	}
 }

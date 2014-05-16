@@ -20,8 +20,8 @@ package
 		public var INT:int;
 		public var GOLD:int;
 		
-		public var clericSpells:Array;
-		public var wizardSpells:Array;
+		public var clericSpells:DdSpellInventory;
+		public var spells:DdSpellInventory;
 		
 		public var inventory:DdInventory;
 		
@@ -31,14 +31,90 @@ package
 		public var x:int;
 		public var y:int;
 		
+		public var equippedItemID:int;
+		public var equippedItem:DdItem;
+		
+		public var equippedClericalSpellID:int;
+		public var equippedClericalSpell:DdSpell;
+		
+		public var equippedSpellID:int;
+		public var equippedSpell:DdSpell;
+		
 		private var __classification:String;
 		
 		public function DdPlayer()
 		{
 			rollStats();
 			inventory = new DdInventory();
-			clericSpells = new Array();
-			wizardSpells = new Array();
+			clericSpells = new DdSpellInventory();
+			spells = new DdSpellInventory();
+			
+			equip(0);
+			equipClericalSpell(0);
+			equipSpell(0);
+		}
+		
+		public function equip(item_id):void
+		{
+			var item:DdItem;
+			
+			item = inventory.getItemByID(item_id);
+			if (item != null)
+			{
+				equippedItemID = item_id;
+				equippedItem = item;
+			}
+		}
+		
+		public function dropEquippedItem():void
+		{
+			if (equippedItem != null)
+			{
+				inventory.dropItem(equippedItem);
+				equip(0);
+			}
+		}
+		
+		public function equipClericalSpell(item_id):void
+		{
+			var item:DdSpell;
+			
+			item = clericSpells.getItemByID(item_id);
+			if (item != null)
+			{
+				equippedClericalSpellID = item_id;
+				equippedClericalSpell = item;
+			}
+		}
+		
+		public function dropEquippedSpell():void
+		{
+			if (equippedSpell != null)
+			{
+				clericSpells.dropItem(equippedSpell);
+				equip(0);
+			}
+		}
+		
+		public function equipSpell(item_id):void
+		{
+			var item:DdSpell;
+			
+			item = clericSpells.getItemByID(item_id);
+			if (item != null)
+			{
+				equippedSpellID = item_id;
+				equippedSpell = item;
+			}
+		}
+		
+		public function dropEquippedClericalSpell():void
+		{
+			if (equippedClericalSpell != null)
+			{
+				clericSpells.dropItem(equippedClericalSpell);
+				equip(0);
+			}
 		}
 		
 		public function rollStats():void{

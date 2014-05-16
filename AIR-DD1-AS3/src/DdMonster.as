@@ -47,8 +47,8 @@ package
 			xOffset = 0;
 			yOffset = 0;
 			
-			x = -1;
-			y = -1;
+			x = 10;
+			y = 10;
 		}
 		
 		public function kill():void
