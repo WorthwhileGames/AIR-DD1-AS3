@@ -2480,7 +2480,7 @@ package
 			
 			__monster.alive = __monster.HP > 0;
 			
-			if (!__monster.alive)
+			if (__monster.id > 0 && !__monster.alive)
 			{
 				__debug.msg(" monsterKilled: ");
 				nextAction(Dd8290, "Dd8290");
@@ -3089,7 +3089,7 @@ package
 				__monster.HP = 0;
 			}
 			
-			print("YOU HAVE" + __player.GOLD + " GOLD ");
+			print("YOU HAVE " + __player.GOLD + " GOLD ");
 			__monster = __monsterDB.getMonsterByID(0);
 			
 			nextAction(Dd7000, "Dd7000");
