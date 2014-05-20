@@ -2,6 +2,8 @@ package
 {
 	import flash.utils.Dictionary;
 	
+	import org.wwlib.utils.WwDebug;
+	
 	/**
 	 * ...
 	 * @author Andrew Rapo (andrew@worthwhilegames.org)
@@ -10,6 +12,8 @@ package
 	public class DdMonsters
 	{
 		private var __types:Array;
+		public var spawnOrder:Array;
+		public var spawnIndex:int;
 		
 		public static const NUM_MONSTER_TYPES:int = 11;
 		
@@ -72,8 +76,63 @@ package
 			monster = new DdMonster(10, "MUMMY",10,16,30,1,1,100);
 			__types[10] = monster;
 			
+			spawnOrder = [1,2,3,4,5,6,7,8,9,10];
+			spawnOrder = ShuffleArray(spawnOrder);
+			spawnIndex = 0;
+			
+			WwDebug.instance.msg("Monsters: spawnOrder: " + spawnOrder);
 			
 		}
+		
+		public function spawnMonster():DdMonster
+		{
+			var _monster:DdMonster;
+			
+			if (spawnIndex < spawnOrder.length)
+			{
+				_monster = getMonsterByID(spawnOrder[spawnIndex]);
+				spawnIndex++;
+			}
+			else
+			{
+				_monster = getMonsterByID(0);
+			}
+			return _monster;
+		}
+		
+		public function ShuffleArray(_array:Array):Array
+		{
+			
+			for (var i:int = _array.length; i > 0; i--)
+			{
+				var j:int = DdRoll.D(i);
+				var k:int = _array[j];
+				_array[j] = _array[i - 1];
+				_array[i - 1]  = k;
+			}
+			return _array;
+		}
+		
+		/*
+		private void button1_Click(object sender, EventArgs e)
+		{
+			int[] array = {1,2,3,4,5};
+			array = ShuffleArray(array);
+		}
+		int[] ShuffleArray(int[] array)
+		{
+			Random r = new Random();
+			for (int i = array.Length; i > 0; i--)
+			{
+				int j = r.Next(i);
+				int k = array[j];
+				array[j] = array[i - 1];
+				array[i - 1]  = k;
+			}
+			return array;
+		}
+		*/
+
 		
 		public function reset(_difficulty:int=1):void
 		{
@@ -82,6 +141,10 @@ package
 				var monster:DdMonster = __types[i] as DdMonster;
 				monster.reset(_difficulty);
 			}
+			
+			spawnOrder = [1,2,3,4,5,6,7,8,9,10];
+			spawnOrder = ShuffleArray(spawnOrder);
+			spawnIndex = 0;
 		}
 
 		public function getMonsterByID(id:int):DdMonster

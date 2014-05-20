@@ -236,8 +236,8 @@ package
 			__state.difficulty = 1; //__J4 = 1; //difficulty
 			__state.resetOnLevelComplete = 1;
 						
-			__commands = new Array("PASS", "MOVE", "OPEN DOOR", "SEARCH FOR TRAPS AND SECRET DOORS", "SWITCH WEAPON HN HAND", "FIGHT", "LOOK AROUND", "SAVE GAME", "USE MAGIC", "BUY MAGIC", "BUY H.P.");
-			
+			__commands = new Array("PASS", "MOVE", "OPEN DOOR", "SEARCH FOR TRAPS AND SECRET DOORS", "SWITCH WEAPON HN HAND", "FIGHT", "LOOK AROUND", "SAVE GAME", "USE MAGIC", "BUY MAGIC", "PASS", "BUY H.P.", "SAVE", "MAP", "STATS", "EQUIPMENT", "CLERICAL SPELLS", "SPELLS");
+
 			__cheatCount = 0;
 			
 			__monsterDB = new DdMonsters();
@@ -888,7 +888,7 @@ package
 				}
 				case 11: //BUY H.P.
 				{
-					nextAction(Dd1590, "Dd1590");
+					nextAction(buyHP, "buyHP");
 					break;
 				}
 				case 12: //SAVE DUNGEON
@@ -1579,7 +1579,7 @@ package
 			
 			print("YOUR WEAPON IS: " + __player.equippedItem.name);
 			
-			if (__monster.id ==0)
+			if (__monster.id == 0)
 			{
 				//NOTHING
 				nextAction(Dd1590, "Dd1590");
@@ -2503,7 +2503,7 @@ package
 			
 			if (__monster.id > 0) //monster type
 			{
-				__debug.msg(" Monster type > 0: " + __monster.id);
+				//__debug.msg(" Monster type > 0: " + __monster.id);
 				nextAction(Dd7160, "Dd7160");
 			}
 			else if ((__player.x == 1) && (__player.y == 12)) //MAGIC NUMBER - in-dungeon store??
@@ -2851,60 +2851,19 @@ package
 			*/
 			
 			__monster = __monsterDB.getMonsterByID(0);
+			__monster = __monsterDB.spawnMonster();
 			
-			var monster_spawned:Boolean = false;
-				
-			//TODO fix this spawn loop
-			//try 50 times :)
-			//outer: for (var spawnAttempt:int = 0; spawnAttempt < 50; spawnAttempt++)
-			//{
-			//while (!monster_spawned)
-			//{
-			//for (var spawnAttempt:int = 0; spawnAttempt < 10; spawnAttempt++)
-			//{
-				__debug.msg(" attempting to spawn monster: "); // + spawnAttempt);
-				var _monster:DdMonster;
-				for (var _id:int = 1; _id < DdMonsters.NUM_MONSTER_TYPES; _id++)
-				{
-					_monster = __monsterDB.getMonsterByID(_id);
-					if (!monster_spawned && (_monster.HP >= 1) && (DdRoll.R(1) > .925)) //roll prevents sequential monster selection
-					{
-						//choose monster
-						__monster = _monster;
-						monster_spawned = true;
-						__debug.msg("  monster spawned: " + __monster.id);
-						//break outer;
-					}
-				}
-			//}
-			
-			if (monster_spawned)
+			if (__monster.id > 0)
 			{
+				__debug.msg("monster spawned: " + __monster.name);
 				nextAction(Dd8000, "Dd8000");
 			}
 			else
 			{
-				var monsters_all_dead:Boolean = true;
 				
-				for ( _id = 1; _id < DdMonsters.NUM_MONSTER_TYPES; _id++)
-				{
-					_monster = __monsterDB.getMonsterByID(_id);
-					if (_monster.HP >= 1) 
-					{
-						monsters_all_dead = false;
-					}
-				}
-				
-				if (monsters_all_dead)
-				{
-					print("ALL MONSTERS DEAD");
-					print("RESET?:");
-					input(onQueryReset);
-				}
-				else
-				{
-					nextAction(Dd1590, "Dd1590 no spawn");
-				}
+				print("ALL MONSTERS DEAD");
+				print("RESET?:");
+				input(onQueryReset);
 			}
 		}
 		
@@ -2962,38 +2921,36 @@ package
 			08150 GO TO 07000
 			*/
 			
-			var _distanceFromPlayer:int = DdRoll.D(7)+1;
+			var _distanceFromPlayer:int = DdRoll.D(4)+3;
 			var monster_x:int = 0;
 			var monster_y:int = 0;
 			var monster_placed:Boolean = false;
 			
-			//TODO fix this loop
-			//while (!monster_placed)
-			//{
-				__debug.msg(" attempting to place monster: ");
-				for (var _m:int= -_distanceFromPlayer; _m < _distanceFromPlayer; _m++)
+			__debug.msg(" attempting to place monster: " + _distanceFromPlayer);
+			for (var _m:int= -_distanceFromPlayer; _m < _distanceFromPlayer; _m++)
+			{
+				for (var _n:int= -_distanceFromPlayer; _n < _distanceFromPlayer; _n++)
 				{
-					for (var _n:int= -_distanceFromPlayer; _n < _distanceFromPlayer; _n++)
+					if (!monster_placed && (Math.abs(_m) > 2) && (Math.abs(_n) > 2))
 					{
-						if (!monster_placed && (Math.abs(_m) > 2) && (Math.abs(_n) > 2))
+						monster_x = __player.x + _n;
+						monster_y = __player.y + _m;
+						var _roll:Number = DdRoll.R(1);
+						
+						__debug.msg("   checking: " + _m + ", " + _n + ", " + _roll);
+						
+						if (__map.isOnMap(monster_x, monster_y) && (__map.getTileType(monster_x, monster_y) == 0) && (_roll <= 0.7))
 						{
-							monster_x = __player.x + _n;
-							monster_y = __player.y + _m;
-							
-							if (__map.isOnMap(monster_x, monster_y) && (__map.getTileType(monster_x, monster_y) == 0)) //(DdRoll.R(1) <= 0.7) &&
-							{
-								__debug.msg("  placing monster at: " + monster_x  + ", " + monster_y);
-								__monster.x = monster_x;
-								__monster.y = monster_y;
-								monster_placed = true;
-							}
+							__debug.msg("  placing monster at: " + monster_x  + ", " + monster_y);
+							__monster.x = monster_x;
+							__monster.y = monster_y;
+							monster_placed = true;
 						}
 					}
 				}
-			//}
+			}
 
-			nextAction(Dd7000, "Dd7000");  //BUG?
-			//nextAction(Dd1590, "Dd1590");
+			nextAction(Dd7000, "Dd7000");
 		}
 		
 		private function Dd8160():void  //health alert
@@ -3626,7 +3583,7 @@ package
 			if ((_input >= 1) && (_input <= 8))
 			{
 				var spell:DdSpell = __spellTypesCleric.item(_input);
-				if (__player.GOLD - spell.cost > 0)
+				if (__player.GOLD - spell.cost >= 0)
 				{
 					print("IT IS YOURS");
 					__player.clericSpells.addItem(spell);
@@ -3705,7 +3662,7 @@ package
 			if ((_input >= 1) && (_input <= 10))
 			{
 				var spell:DdSpell = __spellTypesWizard.item(_input);
-				if (__player.GOLD - spell.cost > 0)
+				if (__player.GOLD - spell.cost >= 0)
 				{
 					print("IT IS YOURS");
 					__player.spells.addItem(spell);
@@ -3745,11 +3702,15 @@ package
 			10840 INPUT Q
 			*/
 			
+			print("HOW MANY 200 GP. EACH ");
 			input(onQueryHowManyHitPointsToBuy);
 		}
 		
 		private function onQueryHowManyHitPointsToBuy(args:Array):void
 		{
+			var q:String = args[0];
+			var _input:int = int(q);
+			
 			/*
 			10850 IF C(7)-200*Q<0 THEN 10900
 			10860 LET C(0)=C(0)+INT(Q)
@@ -3763,6 +3724,21 @@ package
 			10900 PRINT "NO"
 			10910 GO TO 10830
 			*/
+			
+			if ((__player.GOLD - 200*_input) >= 0)
+			{
+				__player.GOLD -= 200*_input;
+				__player.HP += _input;
+				
+				print("OK DONE");
+				print("HP= " + __player.HP);
+				nextAction(Dd7000, "Dd7000");
+			}
+			else
+			{
+				print("NO");
+				nextAction(Dd1590, "Dd1590");
+			}
 		}
 		
 		private function save():void
