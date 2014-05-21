@@ -305,10 +305,7 @@ package
 			//00330 PRINT
 			print("     DUNGEONS AND DRAGONS #1");
 			print();
-			print("COMPLETED: I/O, MOVEMENT AND MONSTER LOGIC");
-			print("TODO: COMBAT, SPELLS");
-			print();
-			
+						
 			//00340 PRINT "DO YOU NEED INSTUCTIONS ";
 			//00350 INPUT Q$
 			print("DO YOU NEED INSTRUCTIONS:", false);
